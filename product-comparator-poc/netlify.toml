@@ -1,0 +1,25 @@
+[build]
+  # Installeer server-deps (nodig voor esbuild-bundling van functions), dan bouw de client
+  command = "npm install --prefix server && npm run build --prefix client"
+  publish = "client/dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# API-routes doorsturen naar Netlify Functions
+[[redirects]]
+  from = "/api/analyze"
+  to = "/.netlify/functions/analyze"
+  status = 200
+
+[[redirects]]
+  from = "/api/barcode/:barcode"
+  to = "/.netlify/functions/barcode?barcode=:barcode"
+  status = 200
+
+# SPA: alle andere routes naar index.html (moet als laatste staan)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
