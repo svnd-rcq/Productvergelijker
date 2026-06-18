@@ -3,6 +3,7 @@ import Header from './components/Header.jsx';
 import StepIndicator from './components/StepIndicator.jsx';
 import BarcodeScanStep from './components/BarcodeScanStep.jsx';
 import ProductList from './components/ProductList.jsx';
+import ProfileSelector from './components/ProfileSelector.jsx';
 import AnalyzeScreen from './components/AnalyzeScreen.jsx';
 import ComparisonTable from './components/ComparisonTable.jsx';
 import SummaryPanel from './components/SummaryPanel.jsx';
@@ -13,18 +14,20 @@ const EMPTY_PRODUCTS = () => [
   { id: 'product_2', images: [], previewUrls: [] },
 ];
 
-// Schermen: barcode | capture | analyzing | result | error
+// Schermen: barcode | capture | profile | analyzing | result | error
 export default function App() {
   const [screen, setScreen] = useState('barcode');
   const [products, setProducts] = useState(EMPTY_PRODUCTS());
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [demoMode, setDemoMode] = useState(true);
+  const [selectedProfiles, setSelectedProfiles] = useState(['bewuste_keuze']);
+  const [selectedAllergens, setSelectedAllergens] = useState([]);
 
   const canAnalyze =
     demoMode || products.filter((p) => p.images.length > 0 || p.barcodeData).length >= 2;
 
-  async function runAnalysis(productList) {
+  async function runAnalysis(productList, profiles = selectedProfiles, allergens = selectedAllergens) {
     setScreen('analyzing');
     setError(null);
 
@@ -42,6 +45,8 @@ export default function App() {
             images: p.images,
             barcodeData: p.barcodeData ?? null,
           })),
+          profiles,
+          allergens,
         }),
       });
 
@@ -81,20 +86,26 @@ export default function App() {
       // Ga naar de foto-stap voor producten zonder barcode-data
       setScreen('capture');
     } else {
-      // Alle producten hebben barcode-data — direct naar analyse
-      runAnalysis(updatedProducts);
+      // Alle producten hebben barcode-data — naar profielkeuze
+      setScreen('profile');
     }
   }
 
+  function handleProfileNext(profiles, allergens) {
+    setSelectedProfiles(profiles);
+    setSelectedAllergens(allergens);
+    runAnalysis(products, profiles, allergens);
+  }
+
   function handleAnalyze() {
-    runAnalysis(products);
+    setScreen('profile');
   }
 
   function handleUseDemoProducts() {
     const demoList = EMPTY_PRODUCTS(); // lege IDs, backend vult mockdata in
     setProducts(demoList);
     setDemoMode(true);
-    runAnalysis(demoList);
+    setScreen('profile');
   }
 
   function handleReset() {
@@ -104,8 +115,8 @@ export default function App() {
     setError(null);
   }
 
-  // Stap 1 = barcode, stap 2 = foto/producten, stap 3 = analyse, stap 4 = resultaat
-  const stepForScreen = { barcode: 1, capture: 2, analyzing: 3, result: 4, error: 1 };
+  // Stap 1 = barcode, stap 2 = foto/producten, stap 3 = profiel, stap 4 = analyse, stap 5 = resultaat
+  const stepForScreen = { barcode: 1, capture: 2, profile: 3, analyzing: 4, result: 5, error: 1 };
 
   return (
     <div className="min-h-screen bg-brand-light font-rethink">
@@ -132,6 +143,10 @@ export default function App() {
             canAnalyze={canAnalyze}
             demoMode={demoMode}
           />
+        )}
+
+        {screen === 'profile' && (
+          <ProfileSelector onNext={handleProfileNext} />
         )}
 
         {screen === 'analyzing' && <AnalyzeScreen />}

@@ -1,11 +1,11 @@
 const { mockProducts, mockSummary } = require('../data/mockProducts');
-const { compareProducts } = require('./comparisonService');
+const { compareProducts, getProfileWinner } = require('./comparisonService');
 
 /**
  * Retourneert altijd de vaste pindakaas-mockdata.
  * Mapt de ontvangen product-IDs op de mock-producten zodat IDs kloppen.
  */
-async function analyze(products) {
+async function analyze(products, profiles = ['bewuste_keuze'], allergens = []) {
   const analyzedProducts = products.map((p, index) => {
     // Als het product al barcode-data heeft, gebruik die direct
     if (p.barcodeData) {
@@ -31,11 +31,12 @@ async function analyze(products) {
   });
 
   const best = compareProducts(analyzedProducts);
+  const profileWinner = getProfileWinner(analyzedProducts, profiles, allergens);
 
   return {
     category: 'food',
     products: analyzedProducts,
-    comparison: { best },
+    comparison: { best, profileWinner, profiles, allergens },
     summary: mockSummary,
   };
 }

@@ -18,7 +18,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { products } = JSON.parse(event.body || '{}');
+    const { products, profiles, allergens } = JSON.parse(event.body || '{}');
 
     if (!products || !Array.isArray(products) || products.length < 2) {
       return {
@@ -28,10 +28,12 @@ exports.handler = async (event) => {
       };
     }
 
+    const safeProfiles = Array.isArray(profiles) && profiles.length > 0 ? profiles : ['bewuste_keuze'];
+    const safeAllergens = Array.isArray(allergens) ? allergens : [];
     const demoMode = process.env.DEMO_MODE !== 'false';
     const result = demoMode
-      ? await mockAnalysisService.analyze(products)
-      : await openaiAnalysisService.analyze(products);
+      ? await mockAnalysisService.analyze(products, safeProfiles, safeAllergens)
+      : await openaiAnalysisService.analyze(products, safeProfiles, safeAllergens);
 
     return {
       statusCode: 200,

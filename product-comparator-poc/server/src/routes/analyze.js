@@ -5,19 +5,21 @@ const openaiAnalysisService = require('../services/openaiAnalysisService');
 
 router.post('/', async (req, res) => {
   try {
-    const { products } = req.body;
+    const { products, profiles, allergens } = req.body;
 
     if (!products || !Array.isArray(products) || products.length < 2) {
       return res.status(400).json({ error: 'Minimaal twee producten zijn vereist.' });
     }
 
+    const safeProfiles = Array.isArray(profiles) && profiles.length > 0 ? profiles : ['bewuste_keuze'];
+    const safeAllergens = Array.isArray(allergens) ? allergens : [];
     const demoMode = process.env.DEMO_MODE !== 'false';
 
     let result;
     if (demoMode) {
-      result = await mockAnalysisService.analyze(products);
+      result = await mockAnalysisService.analyze(products, safeProfiles, safeAllergens);
     } else {
-      result = await openaiAnalysisService.analyze(products);
+      result = await openaiAnalysisService.analyze(products, safeProfiles, safeAllergens);
     }
 
     res.json(result);

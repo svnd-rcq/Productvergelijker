@@ -1,4 +1,4 @@
-const { compareProducts } = require('./comparisonService');
+const { compareProducts, getProfileWinner } = require('./comparisonService');
 const mockAnalysisService = require('./mockAnalysisService');
 
 // Prompt voor foto-analyse: exact voorgeschreven 3-stappen structuur
@@ -101,10 +101,10 @@ async function analyzePhotoProduct(openai, product) {
  * Probeert OpenAI Vision te gebruiken voor productanalyse.
  * Als er geen API-key is of als OpenAI faalt, valt de service terug op mockdata.
  */
-async function analyze(products) {
+async function analyze(products, profiles = ['bewuste_keuze'], allergens = []) {
   if (!process.env.OPENAI_API_KEY) {
     console.warn('[OpenAI] Geen OPENAI_API_KEY gevonden – terugvallen op mockdata.');
-    return mockAnalysisService.analyze(products);
+    return mockAnalysisService.analyze(products, profiles, allergens);
   }
 
   try {
@@ -146,17 +146,48 @@ async function analyze(products) {
     // Vergelijking alleen berekenen over producten zonder unreadable-foto
     const comparableProducts = allProducts.filter((p) => !p.photo_unreadable);
     const best = compareProducts(comparableProducts.length >= 2 ? comparableProducts : allProducts);
-    const summary = buildSummary(allProducts, best);
+    const profileWinner = getProfileWinner(
+      comparableProducts.length >= 2 ? comparableProducts : allProducts,
+      profiles,
+      allergens,
+    );
+    const summary = buildSummary(allProducts, best, profiles, allergens, profileWinner);
 
-    return { category: 'food', products: allProducts, comparison: { best }, summary };
+    return { category: 'food', products: allProducts, comparison: { best, profileWinner, profiles, allergens }, summary };
   } catch (err) {
     console.error('[OpenAI] Analyse mislukt, terugvallen op mockdata:', err.message);
-    return mockAnalysisService.analyze(products);
+    return mockAnalysisService.analyze(products, profiles, allergens);
   }
 }
 
-function buildSummary(products, best) {
+const PROFILE_LABELS = {
+  bewuste_keuze: 'Bewuste keuze',
+  minder_suiker: 'Minder suiker',
+  minder_zout: 'Minder zout',
+  lijnbewust: 'Lijnbewust',
+  veel_eiwitten: 'Veel eiwitten',
+  budgetbewust: 'Budgetbewust',
+  biologisch: 'Biologisch',
+  vegan: 'Vegan',
+  allergiecheck: 'Allergiecheck',
+  minst_bewerkt: 'Minst bewerkt',
+  sportief: 'Sportief',
+  gezin_balans: 'Gezin / balans',
+};
+
+function buildSummary(products, best, profiles = [], allergens = [], profileWinner = null) {
   const lines = [];
+  const profileLabels = profiles.map((p) => PROFILE_LABELS[p] || p).join(', ');
+
+  // Profielwinnaar-zin
+  if (profileWinner) {
+    const winner = products.find((p) => p.id === profileWinner);
+    if (winner) {
+      lines.push(`${winner.name} past het beste bij jouw profiel "${profileLabels}".`);
+    }
+  }
+
+  // Specifieke inzichten
   const addInsight = (key, template) => {
     if (best[key]) {
       const winner = products.find((p) => p.id === best[key]);
@@ -168,8 +199,27 @@ function buildSummary(products, best) {
   addInsight('protein_g',      (n) => `${n} bevat meer eiwitten.`);
   addInsight('salt_g',         (n) => `${n} bevat minder zout.`);
   addInsight('energy_kcal',    (n) => `${n} heeft minder calorieën per 100 gram.`);
+
+  // Allergiecheck-notitie
+  if (profiles.includes('allergiecheck') && allergens.length > 0) {
+    const allergenLabels = allergens.join(', ');
+    lines.push(`Let op allergenen: ${allergenLabels}.`);
+  }
+
+  // Ontbrekende data voor profielen die dit vereisen
+  const unavailableProfiles = profiles.filter((p) =>
+    ['biologisch', 'vegan', 'minst_bewerkt'].includes(p)
+  );
+  if (unavailableProfiles.length > 0) {
+    const labels = unavailableProfiles.map((p) => PROFILE_LABELS[p]).join(', ');
+    lines.push(`Informatie voor "${labels}" is niet beschikbaar op het etiket.`);
+  }
+
   lines.push('Controleer bij twijfel altijd het originele etiket.');
-  return lines.join(' ');
+  // Max 3 inhoudelijke zinnen + disclaimerzin
+  const content = lines.slice(0, 3);
+  if (!content.includes(lines[lines.length - 1])) content.push(lines[lines.length - 1]);
+  return content.join(' ');
 }
 
 module.exports = { analyze };
