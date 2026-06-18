@@ -1,6 +1,6 @@
 [build]
   # Installeer server-deps (nodig voor esbuild-bundling van functions), dan bouw de client
-  command = "npm install --prefix server && cd client && npm install && npx vite build"
+  command = "npm install --prefix server && npm install --prefix client && node client/node_modules/.bin/vite build --config client/vite.config.js"
   publish = "client/dist"
   functions = "netlify/functions"
 
