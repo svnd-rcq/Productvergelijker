@@ -3,29 +3,71 @@ const mockAnalysisService = require('./mockAnalysisService');
 
 // Prompt voor foto-analyse: exact voorgeschreven 3-stappen structuur
 const PHOTO_SYSTEM_PROMPT = `You analyze product photos to extract nutritional information and allergens.
-Always respond with valid JSON in one of these two formats:
+Always respond with valid JSON in exactly one of these two formats:
 - If no relevant data could be extracted: {"status":"not_found"}
-- If data was extracted: {"status":"found","trustworthy":true,"data":{...exact Open Food Facts product format...}}
-The "trustworthy" field must be false when values are likely misread or uncertain.`;
+- If data was extracted:
+{
+  "status": "found",
+  "trustworthy": true,
+  "data": {
+    "product_name": "<name or null>",
+    "brands": "<brand or null>",
+    "nutriments": {
+      "energy-kcal_100g": <number or null>,
+      "sugars_100g": <number or null>,
+      "salt_100g": <number or null>,
+      "proteins_100g": <number or null>,
+      "fat_100g": <number or null>
+    },
+    "allergens_tags": ["en:gluten", "en:milk"]
+  }
+}
+Set "trustworthy" to false when values are likely misread or uncertain.
+Use null for any field that could not be determined. Do not invent values.`;
 
 const PHOTO_USER_PROMPT =
   'there are 3 possible steps to make:\n' +
   '1 determine whether this is the picture(s) of a nutritional table, ingredient list, both, or neither\n' +
   '2.a if the picture(s) includes nutritional facts, extract those nutritional facts\n' +
   '2.b if the picture(s) includes an ingredient list, extract the allergens\n' +
-  '3 if any data has been extracted, give me a json with this data, exactly formatted how Open Food Facts ' +
-  'formats it\'s product data – also return whether the data is trustworthy or is likely misread, ' +
-  'if no data was extracted, respond with "404"';
+  '3 if any data has been extracted, respond with JSON in the exact format described in the system prompt. ' +
+  'If no data was extracted, respond with {"status":"not_found"}.';
 
 /**
  * Zet Open Food Facts nutriments + allergens_tags om naar intern schema.
  */
+function firstDefined(...values) {
+  for (const v of values) {
+    if (v != null) return v;
+  }
+  return null;
+}
+
 function mapOffToInternal(id, offData, trustworthy) {
   const n = offData.nutriments || {};
-  const energyKcal =
-    n['energy-kcal_100g'] != null ? n['energy-kcal_100g'] :
-    n['energy_kcal_100g'] != null ? n['energy_kcal_100g'] :
-    n['energy_100g'] != null ? Math.round(n['energy_100g'] / 4.184) : null;
+
+  // Accepteer meerdere sleutelvarianten die OpenAI kan teruggeven
+  const energyKcal = firstDefined(
+    n['energy-kcal_100g'],
+    n['energy_kcal_100g'],
+    n['energy_kcal'],
+    n['energy-kcal'],
+    n['energy_100g'] != null ? Math.round(n['energy_100g'] / 4.184) : undefined,
+    n['energy'] != null ? Math.round(n['energy'] / 4.184) : undefined,
+  );
+
+  const sugarG = firstDefined(
+    n['sugars_100g'], n['sugars'], n['sugar_100g'], n['sugar'],
+  );
+  const saltG = firstDefined(
+    n['salt_100g'], n['salt'],
+  );
+  const proteinG = firstDefined(
+    n['proteins_100g'], n['proteins'], n['protein_100g'], n['protein'],
+  );
+  const fatG = firstDefined(
+    n['fat_100g'], n['fat'],
+  );
 
   const nutritionConfidence = energyKcal != null ? (trustworthy ? 0.85 : 0.5) : 0;
 
@@ -42,10 +84,10 @@ function mapOffToInternal(id, offData, trustworthy) {
     price_per_100g: null,
     nutrition_per_100g: {
       energy_kcal: energyKcal,
-      sugar_g:   n['sugars_100g']   ?? null,
-      salt_g:    n['salt_100g']     ?? null,
-      protein_g: n['proteins_100g'] ?? null,
-      fat_g:     n['fat_100g']      ?? null,
+      sugar_g:   sugarG,
+      salt_g:    saltG,
+      protein_g: proteinG,
+      fat_g:     fatG,
     },
     allergens,
     confidence: { name: 0, brand: 0, price: 0, quantity: 0, nutrition: nutritionConfidence },
@@ -137,11 +179,19 @@ async function analyze(products, profiles = ['bewuste_keuze'], allergens = []) {
     );
 
     // Voeg resultaten samen, behoud de originele volgorde
-    const allProducts = products.map((p) =>
-      barcodeResults.find((r) => r.id === p.id) ||
-      photoResults.find((r) => r.id === p.id) ||
-      emptyProduct(p.id),
-    );
+    const allProducts = products.map((p) => {
+      const result =
+        barcodeResults.find((r) => r.id === p.id) ||
+        photoResults.find((r) => r.id === p.id) ||
+        emptyProduct(p.id);
+
+      // Voeg handmatig ingevoerde prijs toe aan foto-producten
+      if (p.photoPrice && result && !result.price) {
+        result.price = p.photoPrice;
+      }
+
+      return result;
+    });
 
     // Vergelijking alleen berekenen over producten zonder unreadable-foto
     const comparableProducts = allProducts.filter((p) => !p.photo_unreadable);

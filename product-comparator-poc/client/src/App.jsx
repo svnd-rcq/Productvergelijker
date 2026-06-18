@@ -43,7 +43,7 @@ export default function App() {
   const [products, setProducts] = useState(EMPTY_PRODUCTS());
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [demoMode, setDemoMode] = useState(true);
+  const [demoMode] = useState(false);
   const [selectedProfiles, setSelectedProfiles] = useState(['bewuste_keuze']);
   const [selectedAllergens, setSelectedAllergens] = useState([]);
 
@@ -70,6 +70,7 @@ export default function App() {
             ),
           ),
           barcodeData: p.barcodeData ?? null,
+          photoPrice: p.photoPrice ?? null,
         }))
       );
 
@@ -99,14 +100,16 @@ export default function App() {
    * barcodeResults: { [productId]: barcodeData | null }
    * anyNeedsPhoto:  true als minstens één product een foto-fallback vereist
    */
-  function handleBarcodeNext(barcodeResults, anyNeedsPhoto, uploadedImages = {}) {
+  function handleBarcodeNext(barcodeResults, anyNeedsPhoto, uploadedImages = {}, photoPrices = {}) {
     const updatedProducts = products.map((p) => {
       const imgs = uploadedImages[p.id] ?? [];
+      const photoPrice = photoPrices[p.id] ?? null;
       return {
         ...p,
         barcodeData: barcodeResults[p.id] ?? null,
         images: imgs.length ? imgs : p.images,
         previewUrls: imgs.length ? imgs : p.previewUrls,
+        photoPrice,
       };
     });
     setProducts(updatedProducts);
@@ -133,7 +136,6 @@ export default function App() {
   function handleUseDemoProducts() {
     const demoList = EMPTY_PRODUCTS(); // lege IDs, backend vult mockdata in
     setProducts(demoList);
-    setDemoMode(true);
     runAnalysis(demoList, selectedProfiles, selectedAllergens);
   }
 
@@ -159,7 +161,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-brand-light font-rethink">
-      <Header demoMode={demoMode} onToggleDemoMode={() => setDemoMode((v) => !v)} />
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 pb-16">
         {screen !== 'analyzing' && (
@@ -201,12 +203,6 @@ export default function App() {
             <InsightsCard result={result} />
             <Disclaimer />
             <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={() => setScreen('profile')}
-                className="w-full sm:w-auto border border-brand-dark/30 hover:border-brand-dark text-brand-dark font-semibold py-3 px-8 rounded-xl transition-colors"
-              >
-                ← Terug naar profielen
-              </button>
               <button
                 onClick={handleReset}
                 className="w-full sm:w-auto bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3 px-8 rounded-xl transition-colors shadow-sm"

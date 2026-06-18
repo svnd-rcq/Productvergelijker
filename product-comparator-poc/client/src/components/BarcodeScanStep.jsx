@@ -235,10 +235,18 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
 
   function handleNext() {
     const barcodeResults = Object.fromEntries(
-      products.map((p) => [p.id, statuses[p.id]?.data ?? null]),
+      products.map((p) => {
+        const s = statuses[p.id];
+        // Voeg handmatig ingevoerde prijs toe aan barcode-data
+        if (s?.data && s?.photoPrice == null) return [p.id, s.data];
+        return [p.id, s?.data ?? null];
+      }),
     );
     const uploadedImages = Object.fromEntries(
       products.map((p) => [p.id, statuses[p.id]?.images ?? []]),
+    );
+    const photoPrices = Object.fromEntries(
+      products.map((p) => [p.id, statuses[p.id]?.photoPrice ?? null]),
     );
     // Naar foto-stap alleen als een product photo-needed is én nog geen foto heeft geüpload
     const anyNeedsPhoto = products.some(
@@ -246,7 +254,7 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
         statuses[p.id]?.state === 'photo-needed' &&
         !(statuses[p.id]?.images?.length),
     );
-    onNext(barcodeResults, anyNeedsPhoto, uploadedImages);
+    onNext(barcodeResults, anyNeedsPhoto, uploadedImages, photoPrices);
   }
 
   // ─── render helpers ──────────────────────────────────────────────────────────
@@ -486,6 +494,73 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
                     <p className="text-xs text-brand-green font-medium font-rethink">
                       ✓ {status.images.length} foto{status.images.length !== 1 ? "'s" : ''} toegevoegd
                     </p>
+
+                    {/* Prijs-invoer voor foto-producten */}
+                    {!status.photoPrice && !status.photoPriceConfirmed && (
+                      <div className="bg-brand-light border border-brand-blue/20 rounded-xl p-3 space-y-2">
+                        <p className="text-xs text-brand-dark/70 font-rethink">
+                          💰 Wat is de prijs van dit product? (optioneel)
+                        </p>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-dark/50 text-sm">€</span>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={priceInputs[product.id]}
+                              onChange={(e) =>
+                                setPriceInputs((prev) => ({ ...prev, [product.id]: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  const price = parseFloat(priceInputs[product.id]?.replace(',', '.'));
+                                  if (!isNaN(price) && price > 0) {
+                                    setStatuses((prev) => ({
+                                      ...prev,
+                                      [product.id]: { ...prev[product.id], photoPrice: price, photoPriceConfirmed: true },
+                                    }));
+                                  }
+                                }
+                              }}
+                              className="w-full pl-7 pr-3 py-2 border border-brand-blue/30 rounded-lg text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-blue/40 font-rethink"
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              const price = parseFloat(priceInputs[product.id]?.replace(',', '.'));
+                              if (!isNaN(price) && price > 0) {
+                                setStatuses((prev) => ({
+                                  ...prev,
+                                  [product.id]: { ...prev[product.id], photoPrice: price, photoPriceConfirmed: true },
+                                }));
+                              }
+                            }}
+                            className="bg-brand-blue hover:bg-brand-dark text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors font-rethink"
+                          >
+                            OK
+                          </button>
+                          <button
+                            onClick={() =>
+                              setStatuses((prev) => ({
+                                ...prev,
+                                [product.id]: { ...prev[product.id], photoPriceConfirmed: true },
+                              }))
+                            }
+                            className="text-xs text-brand-dark/40 hover:text-brand-blue px-2 font-rethink"
+                          >
+                            Overslaan
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {status.photoPriceConfirmed && status.photoPrice && (
+                      <p className="text-xs text-brand-green font-medium font-rethink">
+                        💰 Prijs opgeslagen: € {Number(status.photoPrice).toFixed(2)}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -566,7 +641,7 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
           onClick={handleNext}
           className="w-full bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm font-rethink"
         >
-          Volgende →
+          Qompare →
         </button>
       )}
     </div>

@@ -129,6 +129,9 @@ export default function ComparisonTable({ result }) {
                   </tr>
                 );
               }
+              if (criterion.key === 'price_per_100g' && products.every((p) => p.price_per_100g == null)) {
+                return null;
+              }
               return (
               <tr
                 key={criterion.key}
