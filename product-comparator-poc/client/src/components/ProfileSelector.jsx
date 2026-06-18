@@ -197,7 +197,7 @@ export default function ProfileSelector({ onNext }) {
         disabled={showAllergenPicker && selectedAllergens.length === 0}
         className="w-full bg-brand-blue hover:bg-brand-dark disabled:bg-brand-dark/30 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm font-rethink"
       >
-        Analyseer producten →
+        Qompare →
       </button>
 
       <button

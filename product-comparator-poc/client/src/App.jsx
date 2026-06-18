@@ -16,6 +16,26 @@ const EMPTY_PRODUCTS = () => [
   { id: 'product_2', images: [], previewUrls: [] },
 ];
 
+/**
+ * Comprimeer een base64 data-URL naar max 1280px brede JPEG met kwaliteit 0.75.
+ * Verkleint de payload drastisch zodat Netlify's 6MB limiet niet bereikt wordt.
+ */
+async function compressImage(dataUrl, maxSize = 1280, quality = 0.75) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl); // fallback: origineel sturen
+    img.src = dataUrl;
+  });
+}
+
 // Schermen: barcode | capture | profile | analyzing | result | error
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -39,18 +59,24 @@ export default function App() {
       await new Promise((r) => setTimeout(r, 3600));
 
       const apiBase = import.meta.env.VITE_API_URL ?? '';
+
+      // Comprimeer foto's voor verzending (Netlify heeft 6MB payload-limiet)
+      const compressedProducts = await Promise.all(
+        productList.map(async (p) => ({
+          id: p.id,
+          images: await Promise.all(
+            (p.images || []).map((img) =>
+              img?.startsWith('data:') ? compressImage(img) : img,
+            ),
+          ),
+          barcodeData: p.barcodeData ?? null,
+        }))
+      );
+
       const response = await fetch(`${apiBase}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          products: productList.map((p) => ({
-            id: p.id,
-            images: p.images,
-            barcodeData: p.barcodeData ?? null,
-          })),
-          profiles,
-          allergens,
-        }),
+        body: JSON.stringify({ products: compressedProducts, profiles, allergens }),
       });
 
       if (!response.ok) {

@@ -9,7 +9,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 // scan-error   → barcode niet leesbaar binnen timeout
 // photo-needed → gebruiker kiest voor foto-fallback
 
-const SCAN_TIMEOUT_MS = 15000;
+const SCAN_TIMEOUT_MS = 6000;
 
 const PRICE_AWARE_PROFILES = ['bewuste_keuze', 'budgetbewust', 'gezin_balans', 'sportief'];
 
@@ -415,6 +415,7 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
                 <input
                   type="file"
                   accept="image/*"
+                  capture="environment"
                   className="hidden"
                   ref={(el) => { fileInputsRef.current[product.id] = el; }}
                   onChange={(e) => handleFileUpload(product.id, e.target.files)}
@@ -423,13 +424,7 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
                   onClick={() => fileInputsRef.current[product.id]?.click()}
                   className="w-full bg-brand-light hover:bg-brand-blue/20 active:bg-brand-blue/30 border border-brand-blue/30 text-brand-dark font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
                 >
-                  <span aria-hidden="true">📁</span> Foto uploaden
-                </button>
-                <button
-                  onClick={() => setStatus(product.id, { state: 'photo-needed' })}
-                  className="w-full bg-brand-light hover:bg-brand-blue/20 active:bg-brand-blue/30 border border-brand-blue/30 text-brand-dark font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
-                >
-                  <span aria-hidden="true">📸</span> Foto maken in volgende stap
+                  <span aria-hidden="true">📸</span> Foto maken
                 </button>
                 <button
                   onClick={() => {
@@ -500,12 +495,6 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
                         Maak een scherpe foto van de voedingswaardetabel in de volgende stap.
                       </p>
                     </div>
-                    <button
-                      onClick={() => fileInputsRef.current[product.id]?.click()}
-                      className="w-full bg-brand-light hover:bg-brand-blue/20 border border-brand-blue/30 text-brand-dark font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
-                    >
-                      <span aria-hidden="true">📁</span> Toch liever foto uploaden
-                    </button>
                   </div>
                 )}
                 <button
@@ -536,8 +525,9 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
               </span>
               <button
                 onClick={() => {
+                  const closingProductId = activeScan;
                   stopCamera();
-                  setStatus(activeScan, { state: 'idle' });
+                  setStatus(closingProductId, { state: 'scan-error' });
                 }}
                 className="text-brand-dark/40 hover:text-brand-dark text-xl leading-none transition-colors"
                 aria-label="Camera sluiten"
