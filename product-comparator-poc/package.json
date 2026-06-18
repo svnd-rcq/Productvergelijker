@@ -1,0 +1,14 @@
+{
+  "name": "product-comparator-poc",
+  "version": "1.0.0",
+  "description": "AI Productvergelijker POC voor Reconneqt hackathon",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently --names \"server,client\" --prefix-colors \"magenta,cyan\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
