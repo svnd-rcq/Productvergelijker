@@ -1,4 +1,5 @@
 const https = require('https');
+const { normalizeAllergens } = require('../utils/allergenUtils');
 
 /**
  * Zet de ruwe Open Food Facts quantity-string om naar { value, unit }.
@@ -95,10 +96,8 @@ async function lookup(barcode) {
       ? Math.round(n['energy_100g'] / 4.184)
       : null;
 
-  // Allergens: strip taal-prefix ("en:gluten" → "gluten")
-  const allergens = (p.allergens_tags || [])
-    .map((tag) => tag.replace(/^[a-z-]+:/, '').trim())
-    .filter(Boolean);
+  // Allergens: normaliseer naar Nederlandse sleutels ("en:peanuts" → "pinda")
+  const allergens = normalizeAllergens(p.allergens_tags || []);
 
   return {
     barcode,

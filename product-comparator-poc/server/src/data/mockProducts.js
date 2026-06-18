@@ -13,7 +13,7 @@ const mockProducts = [
       protein_g: 25,
       fat_g: 52,
     },
-    allergens: ['pindas'],
+    allergens: ['pinda'],
     confidence: {
       name: 0.95,
       brand: 0.95,
@@ -36,7 +36,7 @@ const mockProducts = [
       protein_g: 27,
       fat_g: 48,
     },
-    allergens: ['pindas'],
+    allergens: ['pinda'],
     confidence: {
       name: 0.95,
       brand: 0.95,

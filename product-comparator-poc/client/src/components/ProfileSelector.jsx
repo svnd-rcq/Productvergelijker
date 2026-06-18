@@ -88,18 +88,13 @@ export const ALLERGEN_OPTIONS = [
 ];
 
 export default function ProfileSelector({ onNext }) {
-  const [selectedProfiles, setSelectedProfiles] = useState(['bewuste_keuze']);
+  const [selectedProfiles, setSelectedProfiles] = useState([]);
   const [selectedAllergens, setSelectedAllergens] = useState([]);
 
   function toggleProfile(key) {
-    setSelectedProfiles((prev) => {
-      if (prev.includes(key)) {
-        // Minimaal één profiel verplicht
-        if (prev.length === 1) return prev;
-        return prev.filter((k) => k !== key);
-      }
-      return [...prev, key];
-    });
+    setSelectedProfiles((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
   }
 
   function toggleAllergen(key) {
@@ -194,7 +189,7 @@ export default function ProfileSelector({ onNext }) {
 
       <button
         onClick={handleNext}
-        disabled={showAllergenPicker && selectedAllergens.length === 0}
+        disabled={selectedProfiles.length === 0 || (showAllergenPicker && selectedAllergens.length === 0)}
         className="w-full bg-brand-blue hover:bg-brand-dark disabled:bg-brand-dark/30 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm font-rethink"
       >
         Qompare →

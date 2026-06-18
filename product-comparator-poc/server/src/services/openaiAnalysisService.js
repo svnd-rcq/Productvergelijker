@@ -1,5 +1,6 @@
 const { compareProducts, getProfileWinner } = require('./comparisonService');
 const mockAnalysisService = require('./mockAnalysisService');
+const { normalizeAllergens } = require('../utils/allergenUtils');
 
 // Prompt voor foto-analyse: exact voorgeschreven 3-stappen structuur
 const PHOTO_SYSTEM_PROMPT = `You analyze product photos to extract nutritional information and allergens.
@@ -71,9 +72,7 @@ function mapOffToInternal(id, offData, trustworthy) {
 
   const nutritionConfidence = energyKcal != null ? (trustworthy ? 0.85 : 0.5) : 0;
 
-  const allergens = (offData.allergens_tags || [])
-    .map((tag) => tag.replace(/^[a-z-]+:/, '').trim())
-    .filter(Boolean);
+  const allergens = normalizeAllergens(offData.allergens_tags || []);
 
   return {
     id,
