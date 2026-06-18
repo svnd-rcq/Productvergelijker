@@ -102,6 +102,7 @@ export default function BarcodeScanStep({ products, onNext }) {
         const { BrowserMultiFormatReader } = await import('@zxing/browser');
         const { DecodeHintType, BarcodeFormat } = await import('@zxing/library');
 
+        // Alleen 1D retail-barcodes — geen QR of Data Matrix
         const hints = new Map();
         hints.set(DecodeHintType.TRY_HARDER, true);
         hints.set(DecodeHintType.POSSIBLE_FORMATS, [
@@ -111,8 +112,6 @@ export default function BarcodeScanStep({ products, onNext }) {
           BarcodeFormat.UPC_E,
           BarcodeFormat.CODE_128,
           BarcodeFormat.CODE_39,
-          BarcodeFormat.QR_CODE,
-          BarcodeFormat.DATA_MATRIX,
         ]);
 
         const reader = new BrowserMultiFormatReader(hints);
@@ -127,6 +126,15 @@ export default function BarcodeScanStep({ products, onNext }) {
             }
             if (cancelled || !result) return;
 
+            const rawBarcode = result.getText();
+
+            // Frontend-validatie: alleen cijfers, 8–14 tekens
+            if (!/^\d{8,14}$/.test(rawBarcode)) {
+              // Geen echte EAN/UPC-barcode — negeer en blijf scannen
+              console.warn('[Barcode] Genegeerd (geen EAN/UPC):', rawBarcode);
+              return;
+            }
+
             // ── Barcode gelezen ──────────────────────────────────────────────
             cancelled = true;
             clearTimeout(timeoutRef.current);
@@ -134,17 +142,27 @@ export default function BarcodeScanStep({ products, onNext }) {
             setActiveScan(null);
             setStatus(productId, { state: 'looking-up' });
 
+            console.log('[Barcode] Gevonden, lookup voor:', rawBarcode);
+
             try {
-              const barcode = result.getText();
               const apiBase = import.meta.env.VITE_API_URL ?? '';
               const res = await fetch(
-                `${apiBase}/api/barcode/${encodeURIComponent(barcode)}`,
+                `${apiBase}/api/barcode/${encodeURIComponent(rawBarcode)}`,
               );
 
               if (res.ok) {
                 const data = await res.json();
                 setStatus(productId, { state: 'found', data });
+              } else if (res.status === 400) {
+                // Barcode-formaat niet herkend (mag eigenlijk niet meer voorkomen
+                // dankzij de frontend-validatie hierboven)
+                setStatus(productId, { state: 'scan-error', data: null });
+                showToast(
+                  'yellow',
+                  'De barcode is niet goed leesbaar. Probeer opnieuw te scannen of maak een foto van de voedingswaardetabel.',
+                );
               } else {
+                // 404 of andere fout: barcode geldig maar niet in database
                 setStatus(productId, { state: 'not-found', data: null });
                 showToast(
                   'red',

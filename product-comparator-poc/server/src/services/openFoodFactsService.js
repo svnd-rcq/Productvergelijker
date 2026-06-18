@@ -18,7 +18,30 @@ function parseQuantity(raw) {
 }
 
 /**
+ * Doet een HTTPS GET-request en parsed de JSON-response.
+ */
+function httpsGet(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(
+      url,
+      { headers: { 'User-Agent': 'RC-Qompare/1.0 (dev@yourapp.com)' } },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          try { resolve(JSON.parse(data)); }
+          catch { reject(new Error('Ongeldige JSON in Open Food Facts response')); }
+        });
+      },
+    );
+    req.on('error', reject);
+    req.setTimeout(8000, () => { req.destroy(); reject(new Error('Open Food Facts request timeout')); });
+  });
+}
+
+/**
  * Haalt productdata op via de Open Food Facts REST API.
+ * Probeert eerst v3, daarna v2 als fallback.
  * Retourneert null als het product niet gevonden is of als de barcode ongeldig is.
  * @param {string} barcode - EAN-8, EAN-13, UPC-A of UPC-E barcode
  * @returns {Promise<object|null>}
@@ -28,32 +51,38 @@ async function lookup(barcode) {
   if (!/^\d{8,14}$/.test(barcode)) return null;
 
   const fields = 'product_name,product_name_nl,brands,quantity,nutriments,allergens_tags';
-  const url = `https://world.openfoodfacts.org/api/v3/product/${barcode}?fields=${fields}`;
 
-  const raw = await new Promise((resolve, reject) => {
-    const req = https.get(
-      url,
-      { headers: { 'User-Agent': 'RC-Qompare/1.0 (dev@yourapp.com)' } },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => (data += chunk));
-        res.on('end', () => {
-          try {
-            resolve(JSON.parse(data));
-          } catch {
-            reject(new Error('Ongeldige JSON in Open Food Facts response'));
-          }
-        });
-      },
-    );
-    req.on('error', reject);
-    req.setTimeout(8000, () => {
-      req.destroy();
-      reject(new Error('Open Food Facts request timeout'));
-    });
-  });
+  // ── Stap 1: probeer v3 ────────────────────────────────────────────────────
+  let raw;
+  try {
+    const url = 'https://world.openfoodfacts.org/api/v3/product/' + barcode + '?fields=' + fields;
+    raw = await httpsGet(url);
+    console.log('[OFF v3]', barcode, '→ status:', raw.status, '| product:', !!raw.product);
+  } catch (err) {
+    console.warn('[OFF v3] Request fout, fallback naar v2:', err.message);
+    raw = null;
+  }
 
-  if (raw.status === 0 || !raw.product) return null;
+  // v3: status is string "success" of "failure"
+  const v3Found = raw && raw.status === 'success' && raw.product;
+
+  // ── Stap 2: v2 als fallback (betere coverage voor sommige producten) ──────
+  if (!v3Found) {
+    try {
+      const urlV2 = 'https://world.openfoodfacts.org/api/v2/product/' + barcode + '.json?fields=' + fields;
+      const rawV2 = await httpsGet(urlV2);
+      console.log('[OFF v2]', barcode, '→ status:', rawV2.status, '| product:', !!rawV2.product);
+      // v2: status is getal 1 (gevonden) of 0 (niet gevonden)
+      if (rawV2.status === 1 && rawV2.product) {
+        raw = rawV2;
+      } else {
+        return null; // ook v2 vindt het niet
+      }
+    } catch (err) {
+      console.warn('[OFF v2] Request fout:', err.message);
+      return null;
+    }
+  }
 
   const p = raw.product;
   const n = p.nutriments || {};
