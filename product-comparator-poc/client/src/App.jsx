@@ -31,7 +31,8 @@ export default function App() {
       // Minimale wachttijd voor de animatie
       await new Promise((r) => setTimeout(r, 3600));
 
-      const response = await fetch('/api/analyze', {
+      const apiBase = import.meta.env.VITE_API_URL ?? '';
+      const response = await fetch(`${apiBase}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
