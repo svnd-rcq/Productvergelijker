@@ -39,19 +39,19 @@ export default function ProductCapture({ product, index, onUpdate, onRemove, can
   const letter = String.fromCharCode(65 + index);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-brand-light p-4">
       {/* Card header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
-            <span className="text-purple-700 text-sm font-bold">{letter}</span>
+          <div className="w-7 h-7 bg-brand-blue/10 rounded-lg flex items-center justify-center">
+            <span className="text-brand-blue text-sm font-bold font-rethink">{letter}</span>
           </div>
-          <span className="font-semibold text-gray-800 text-sm">Product {letter}</span>
+          <span className="font-semibold text-brand-dark text-sm font-rethink">Product {letter}</span>
         </div>
         {canRemove && (
           <button
             onClick={onRemove}
-            className="text-xs text-gray-400 hover:text-red-500 transition-colors font-medium"
+            className="text-xs text-brand-dark/40 hover:text-red-500 transition-colors font-medium font-rethink"
           >
             Verwijderen
           </button>
@@ -67,7 +67,7 @@ export default function ProductCapture({ product, index, onUpdate, onRemove, can
       )}
 
       {/* Instructietekst boven de foto-upload */}
-      <p className="text-xs font-medium text-gray-500 mb-2">
+      <p className="text-xs font-medium text-brand-dark/60 mb-2 font-rethink">
         Maak een duidelijke foto van de voedingswaardetabel/ingrediënten.
       </p>
 
@@ -92,7 +92,7 @@ export default function ProductCapture({ product, index, onUpdate, onRemove, can
           {/* Add more button */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-20 h-20 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-gray-400 hover:border-purple-300 hover:text-purple-400 transition-colors"
+                className="w-20 h-20 border-2 border-dashed border-brand-blue/30 rounded-xl flex items-center justify-center text-brand-blue/50 hover:border-brand-blue hover:text-brand-blue transition-colors"
             aria-label="Meer foto's toevoegen"
           >
             <span className="text-2xl leading-none">+</span>
@@ -101,13 +101,13 @@ export default function ProductCapture({ product, index, onUpdate, onRemove, can
       ) : (
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full border-2 border-dashed border-gray-200 rounded-xl p-6 flex flex-col items-center justify-center gap-2 hover:border-purple-300 hover:bg-purple-50 transition-all group cursor-pointer"
+          className="w-full border-2 border-dashed border-brand-blue/30 rounded-xl p-6 flex flex-col items-center justify-center gap-2 hover:border-brand-blue hover:bg-brand-blue/5 transition-all group cursor-pointer"
         >
           <span className="text-3xl">📷</span>
-          <span className="text-sm font-medium text-gray-500 group-hover:text-purple-600">
+            <span className="text-sm font-medium text-brand-dark/50 group-hover:text-brand-blue font-rethink">
             Foto toevoegen
           </span>
-          <span className="text-xs text-gray-400">Tik om te fotograferen of uploaden</span>
+          <span className="text-xs text-brand-dark/40 font-rethink">Tik om te fotograferen of uploaden</span>
         </button>
       )}
 

@@ -7,13 +7,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icons/*.png'],
+      includeAssets: ['Reconneqt_favicon.png', 'apple-touch-icon.png', 'icons/*.png', 'Reconneqt_icon.png'],
       manifest: {
-        name: 'Productvergelijker',
+        name: 'Productvergelijker – Reconneqt',
         short_name: 'Vergelijker',
         description: 'Vergelijk producten met AI door foto\'s te maken',
-        theme_color: '#6366f1',
-        background_color: '#ffffff',
+        theme_color: '#033047',
+        background_color: '#D3E4EF',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',

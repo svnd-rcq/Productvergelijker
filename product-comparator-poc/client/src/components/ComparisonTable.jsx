@@ -75,7 +75,7 @@ function ConfidenceBadge({ confidence, field }) {
   const val = confidence?.[field];
   if (val == null || val >= 0.75) return null;
   return (
-    <span className="ml-1 text-xs bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full font-medium">
+    <span className="ml-1 text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full font-medium font-rethink">
       Onzeker
     </span>
   );
@@ -87,21 +87,21 @@ export default function ComparisonTable({ result }) {
 
   return (
     <div className="mt-6">
-      <h2 className="text-lg font-bold text-gray-900 mb-3">Vergelijkingstabel</h2>
-      <div className="overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
+      <h2 className="text-lg font-semibold text-brand-dark mb-3 font-rethink">Vergelijkingstabel</h2>
+      <div className="overflow-x-auto rounded-2xl border border-brand-light shadow-sm">
         <table className="w-full min-w-[380px] bg-white text-sm">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3 w-36">
+            <tr className="bg-brand-dark border-b border-brand-dark/80">
+              <th className="text-left text-xs font-semibold text-brand-light uppercase tracking-wide px-4 py-3 w-36 font-rethink">
                 Criterium
               </th>
               {products.map((p, i) => (
                 <th key={p.id} className="px-4 py-3 text-center">
-                  <div className="font-semibold text-gray-800 leading-tight">
+                  <div className="font-semibold text-white leading-tight font-rethink">
                     {p.name ?? `Product ${i + 1}`}
                   </div>
                   {p.brand && (
-                    <div className="text-xs text-gray-400 font-normal">{p.brand}</div>
+                    <div className="text-xs text-brand-light/60 font-normal font-rethink">{p.brand}</div>
                   )}
                 </th>
               ))}
@@ -112,10 +112,10 @@ export default function ComparisonTable({ result }) {
               <tr
                 key={criterion.key}
                 className={`border-b border-gray-50 last:border-0 ${
-                  rowIdx % 2 === 1 ? 'bg-gray-50/60' : ''
+                  rowIdx % 2 === 1 ? 'bg-brand-light/40' : ''
                 }`}
               >
-                <td className="px-4 py-3 text-gray-600 font-medium whitespace-nowrap">
+                <td className="px-4 py-3 text-brand-dark font-medium whitespace-nowrap font-rethink">
                   {criterion.label}
                 </td>
                 {products.map((p) => {
@@ -124,15 +124,15 @@ export default function ComparisonTable({ result }) {
                     <td
                       key={p.id}
                       className={`px-4 py-3 text-center transition-colors ${
-                        isBest ? 'bg-green-50' : ''
+                        isBest ? 'bg-brand-green/10' : ''
                       }`}
                     >
                       <div className="flex items-center justify-center gap-1 flex-wrap">
-                        <span className={`font-medium ${isBest ? 'text-green-700' : 'text-gray-800'}`}>
+                        <span className={`font-medium font-rethink ${isBest ? 'text-brand-green' : 'text-brand-dark'}`}>
                           {criterion.render(p)}
                         </span>
                         {isBest && (
-                          <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">
+                          <span className="text-xs bg-brand-green/20 text-brand-dark px-1.5 py-0.5 rounded-full font-semibold font-rethink">
                             Beste
                           </span>
                         )}

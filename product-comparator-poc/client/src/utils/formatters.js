@@ -11,7 +11,8 @@ export function formatPrice(value) {
  */
 export function formatNutrition(value, unit) {
   if (value === null || value === undefined) return 'Niet gevonden';
-  return `${value}\u00a0${unit}`;
+  const formatted = unit === 'kcal' ? Math.round(value) : value;
+  return `${formatted}\u00a0${unit}`;
 }
 
 /**

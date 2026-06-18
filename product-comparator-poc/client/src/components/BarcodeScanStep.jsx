@@ -102,7 +102,6 @@ export default function BarcodeScanStep({ products, onNext }) {
         const { BrowserMultiFormatReader } = await import('@zxing/browser');
         const { DecodeHintType, BarcodeFormat } = await import('@zxing/library');
 
-        // Alleen 1D retail-barcodes — geen QR of Data Matrix
         const hints = new Map();
         hints.set(DecodeHintType.TRY_HARDER, true);
         hints.set(DecodeHintType.POSSIBLE_FORMATS, [
@@ -112,6 +111,8 @@ export default function BarcodeScanStep({ products, onNext }) {
           BarcodeFormat.UPC_E,
           BarcodeFormat.CODE_128,
           BarcodeFormat.CODE_39,
+          BarcodeFormat.QR_CODE,
+          BarcodeFormat.DATA_MATRIX,
         ]);
 
         const reader = new BrowserMultiFormatReader(hints);
@@ -126,15 +127,6 @@ export default function BarcodeScanStep({ products, onNext }) {
             }
             if (cancelled || !result) return;
 
-            const rawBarcode = result.getText();
-
-            // Frontend-validatie: alleen cijfers, 8–14 tekens
-            if (!/^\d{8,14}$/.test(rawBarcode)) {
-              // Geen echte EAN/UPC-barcode — negeer en blijf scannen
-              console.warn('[Barcode] Genegeerd (geen EAN/UPC):', rawBarcode);
-              return;
-            }
-
             // ── Barcode gelezen ──────────────────────────────────────────────
             cancelled = true;
             clearTimeout(timeoutRef.current);
@@ -142,27 +134,17 @@ export default function BarcodeScanStep({ products, onNext }) {
             setActiveScan(null);
             setStatus(productId, { state: 'looking-up' });
 
-            console.log('[Barcode] Gevonden, lookup voor:', rawBarcode);
-
             try {
+              const barcode = result.getText();
               const apiBase = import.meta.env.VITE_API_URL ?? '';
               const res = await fetch(
-                `${apiBase}/api/barcode/${encodeURIComponent(rawBarcode)}`,
+                `${apiBase}/api/barcode/${encodeURIComponent(barcode)}`,
               );
 
               if (res.ok) {
                 const data = await res.json();
                 setStatus(productId, { state: 'found', data });
-              } else if (res.status === 400) {
-                // Barcode-formaat niet herkend (mag eigenlijk niet meer voorkomen
-                // dankzij de frontend-validatie hierboven)
-                setStatus(productId, { state: 'scan-error', data: null });
-                showToast(
-                  'yellow',
-                  'De barcode is niet goed leesbaar. Probeer opnieuw te scannen of maak een foto van de voedingswaardetabel.',
-                );
               } else {
-                // 404 of andere fout: barcode geldig maar niet in database
                 setStatus(productId, { state: 'not-found', data: null });
                 showToast(
                   'red',
@@ -246,10 +228,10 @@ export default function BarcodeScanStep({ products, onNext }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+        <h2 className="text-sm font-semibold text-brand-dark uppercase tracking-wide font-rethink">
           Stap 1 — Barcode scannen
         </h2>
-        <span className="text-xs text-gray-400">min. 2 producten</span>
+        <span className="text-xs text-brand-dark/50">min. 2 producten</span>
       </div>
 
       {/* Toast melding */}
@@ -284,8 +266,8 @@ export default function BarcodeScanStep({ products, onNext }) {
           >
             {/* Koptekst */}
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-purple-700 text-sm font-bold">
+              <div className="w-7 h-7 bg-brand-blue/10 rounded-lg flex items-center justify-center">
+                <span className="text-brand-blue text-sm font-bold font-rethink">
                   {letter(index)}
                 </span>
               </div>
@@ -301,7 +283,7 @@ export default function BarcodeScanStep({ products, onNext }) {
                   setStatus(product.id, { state: 'scanning' });
                   setActiveScan(product.id);
                 }}
-                className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
               >
                 <span aria-hidden="true">📷</span> Barcode scannen
               </button>
@@ -309,16 +291,16 @@ export default function BarcodeScanStep({ products, onNext }) {
 
             {/* Scanning — wacht op camera-modal */}
             {status.state === 'scanning' && (
-              <div className="text-center text-sm text-gray-500 py-3">
-                <div className="animate-spin inline-block w-5 h-5 border-2 border-purple-300 border-t-purple-600 rounded-full mr-2" />
+              <div className="text-center text-sm text-brand-dark/50 py-3 font-rethink">
+                <div className="animate-spin inline-block w-5 h-5 border-2 border-brand-blue/30 border-t-brand-blue rounded-full mr-2" />
                 Camera openen…
               </div>
             )}
 
             {/* Looking up — backend-lookup actief */}
             {status.state === 'looking-up' && (
-              <div className="text-center text-sm text-gray-500 py-3">
-                <div className="animate-spin inline-block w-5 h-5 border-2 border-purple-300 border-t-purple-600 rounded-full mr-2" />
+              <div className="text-center text-sm text-brand-dark/50 py-3 font-rethink">
+                <div className="animate-spin inline-block w-5 h-5 border-2 border-brand-blue/30 border-t-brand-blue rounded-full mr-2" />
                 Product opzoeken…
               </div>
             )}
@@ -326,17 +308,17 @@ export default function BarcodeScanStep({ products, onNext }) {
             {/* Found — product gevonden */}
             {status.state === 'found' && status.data && (
               <div className="space-y-2">
-                <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl p-3">
-                  <span className="text-green-600 text-lg mt-0.5" aria-hidden="true">✓</span>
+                <div className="flex items-start gap-3 bg-brand-green/10 border border-brand-green/30 rounded-xl p-3">
+                  <span className="text-brand-green text-lg mt-0.5" aria-hidden="true">✓</span>
                   <div>
-                    <p className="text-sm font-semibold text-green-800">
+                    <p className="text-sm font-semibold text-brand-dark font-rethink">
                       {status.data.name || 'Onbekend product'}
                     </p>
                     {status.data.brand && (
-                      <p className="text-xs text-green-700">{status.data.brand}</p>
+                      <p className="text-xs text-brand-dark/60 font-rethink">{status.data.brand}</p>
                     )}
                     {status.data.quantity?.value && (
-                      <p className="text-xs text-green-600">
+                      <p className="text-xs text-brand-dark/50 font-rethink">
                         {status.data.quantity.value}&thinsp;{status.data.quantity.unit}
                       </p>
                     )}
@@ -344,7 +326,7 @@ export default function BarcodeScanStep({ products, onNext }) {
                 </div>
                 <button
                   onClick={() => setStatus(product.id, { state: 'idle', data: null })}
-                  className="text-xs text-gray-400 hover:text-purple-600 font-medium transition-colors"
+                  className="text-xs text-brand-dark/40 hover:text-brand-blue font-medium transition-colors font-rethink"
                 >
                   Opnieuw scannen
                 </button>
@@ -363,13 +345,13 @@ export default function BarcodeScanStep({ products, onNext }) {
                 />
                 <button
                   onClick={() => fileInputsRef.current[product.id]?.click()}
-                  className="w-full bg-orange-50 hover:bg-orange-100 active:bg-orange-200 border border-orange-200 text-orange-700 font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-brand-light hover:bg-brand-blue/20 active:bg-brand-blue/30 border border-brand-blue/30 text-brand-dark font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
                 >
                   <span aria-hidden="true">📁</span> Foto uploaden
                 </button>
                 <button
                   onClick={() => setStatus(product.id, { state: 'photo-needed' })}
-                  className="w-full bg-orange-50 hover:bg-orange-100 active:bg-orange-200 border border-orange-200 text-orange-700 font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-brand-light hover:bg-brand-blue/20 active:bg-brand-blue/30 border border-brand-blue/30 text-brand-dark font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
                 >
                   <span aria-hidden="true">📸</span> Foto maken in volgende stap
                 </button>
@@ -378,7 +360,7 @@ export default function BarcodeScanStep({ products, onNext }) {
                     setStatus(product.id, { state: 'idle' });
                     setToast(null);
                   }}
-                  className="w-full text-xs text-gray-400 hover:text-purple-600 font-medium transition-colors py-1"
+                  className="w-full text-xs text-brand-dark/40 hover:text-brand-blue font-medium transition-colors py-1 font-rethink"
                 >
                   Opnieuw scannen
                 </button>
@@ -403,7 +385,7 @@ export default function BarcodeScanStep({ products, onNext }) {
                           <img
                             src={src}
                             alt={`Foto ${i + 1}`}
-                            className="w-20 h-20 object-cover rounded-xl border border-gray-100"
+                            className="w-20 h-20 object-cover rounded-xl border border-brand-light"
                           />
                           <button
                             onClick={() =>
@@ -424,27 +406,27 @@ export default function BarcodeScanStep({ products, onNext }) {
                       ))}
                       <button
                         onClick={() => fileInputsRef.current[product.id]?.click()}
-                        className="w-20 h-20 border-2 border-dashed border-orange-200 rounded-xl flex items-center justify-center text-orange-400 hover:border-orange-400 transition-colors"
+                        className="w-20 h-20 border-2 border-dashed border-brand-blue/30 rounded-xl flex items-center justify-center text-brand-blue/50 hover:border-brand-blue transition-colors"
                         aria-label="Meer foto's toevoegen"
                       >
                         <span className="text-2xl leading-none">+</span>
                       </button>
                     </div>
-                    <p className="text-xs text-green-700 font-medium">
+                    <p className="text-xs text-brand-green font-medium font-rethink">
                       ✓ {status.images.length} foto{status.images.length !== 1 ? "'s" : ''} toegevoegd
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-xl p-3">
-                      <span className="text-orange-500 text-lg mt-0.5" aria-hidden="true">📸</span>
-                      <p className="text-sm text-orange-700 flex-1">
+                    <div className="flex items-start gap-3 bg-brand-light border border-brand-blue/20 rounded-xl p-3">
+                      <span className="text-brand-blue text-lg mt-0.5" aria-hidden="true">📸</span>
+                      <p className="text-sm text-brand-dark flex-1 font-rethink">
                         Maak een scherpe foto van de voedingswaardetabel in de volgende stap.
                       </p>
                     </div>
                     <button
                       onClick={() => fileInputsRef.current[product.id]?.click()}
-                      className="w-full bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-700 font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                      className="w-full bg-brand-light hover:bg-brand-blue/20 border border-brand-blue/30 text-brand-dark font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
                     >
                       <span aria-hidden="true">📁</span> Toch liever foto uploaden
                     </button>
@@ -452,7 +434,7 @@ export default function BarcodeScanStep({ products, onNext }) {
                 )}
                 <button
                   onClick={() => setStatus(product.id, { state: 'idle' })}
-                  className="text-xs text-gray-400 hover:text-purple-600 font-medium transition-colors"
+                  className="text-xs text-brand-dark/40 hover:text-brand-blue font-medium transition-colors font-rethink"
                 >
                   Herstart
                 </button>
@@ -472,8 +454,8 @@ export default function BarcodeScanStep({ products, onNext }) {
         >
           <div className="bg-white rounded-2xl overflow-hidden w-full max-w-sm shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <span className="font-semibold text-gray-800 text-sm">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-brand-light">
+              <span className="font-semibold text-brand-dark text-sm font-rethink">
                 Barcode scannen
               </span>
               <button
@@ -481,7 +463,7 @@ export default function BarcodeScanStep({ products, onNext }) {
                   stopCamera();
                   setStatus(activeScan, { state: 'idle' });
                 }}
-                className="text-gray-400 hover:text-gray-700 text-xl leading-none transition-colors"
+                className="text-brand-dark/40 hover:text-brand-dark text-xl leading-none transition-colors"
                 aria-label="Camera sluiten"
               >
                 ✕
@@ -500,12 +482,12 @@ export default function BarcodeScanStep({ products, onNext }) {
               />
               {/* Scan-overlay met richtlijn */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-3/4 h-20 border-2 border-purple-400 rounded-xl opacity-80" />
+                <div className="w-3/4 h-20 border-2 border-brand-blue rounded-xl opacity-80" />
               </div>
             </div>
 
             {/* Instructie */}
-            <p className="px-4 py-3 text-xs text-gray-500 text-center">
+            <p className="px-4 py-3 text-xs text-brand-dark/50 text-center font-rethink">
               Richt de camera op de barcode van het product
             </p>
           </div>
@@ -516,7 +498,7 @@ export default function BarcodeScanStep({ products, onNext }) {
       {allReady && (
         <button
           onClick={handleNext}
-          className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm"
+          className="w-full bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm font-rethink"
         >
           Volgende →
         </button>

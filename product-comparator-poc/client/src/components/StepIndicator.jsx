@@ -14,19 +14,19 @@ export default function StepIndicator({ currentStep }) {
         <React.Fragment key={step.num}>
           <div className="flex flex-col items-center gap-1">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 font-rethink ${
                 currentStep > step.num
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-brand-blue text-white'
                   : currentStep === step.num
-                  ? 'bg-purple-600 text-white ring-4 ring-purple-100'
-                  : 'bg-gray-200 text-gray-400'
+                  ? 'bg-brand-blue text-white ring-4 ring-brand-blue/20'
+                  : 'bg-brand-light text-brand-dark/40'
               }`}
             >
               {currentStep > step.num ? '✓' : step.num}
             </div>
             <span
-              className={`text-xs font-medium transition-colors ${
-                currentStep >= step.num ? 'text-purple-700' : 'text-gray-400'
+              className={`text-xs font-medium transition-colors font-rethink ${
+                currentStep >= step.num ? 'text-brand-dark' : 'text-brand-dark/40'
               }`}
             >
               {step.label}
@@ -35,7 +35,7 @@ export default function StepIndicator({ currentStep }) {
           {i < STEPS.length - 1 && (
             <div
               className={`w-12 h-0.5 mb-5 transition-all duration-300 ${
-                currentStep > step.num ? 'bg-purple-500' : 'bg-gray-200'
+                currentStep > step.num ? 'bg-brand-blue' : 'bg-brand-dark/20'
               }`}
             />
           )}

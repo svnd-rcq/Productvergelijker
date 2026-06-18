@@ -20,7 +20,6 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [demoMode, setDemoMode] = useState(true);
-  const [photoUnreadableIds, setPhotoUnreadableIds] = useState([]);
 
   const canAnalyze =
     demoMode || products.filter((p) => p.images.length > 0 || p.barcodeData).length >= 2;
@@ -52,28 +51,8 @@ export default function App() {
       }
 
       const data = await response.json();
-
-      // Controleer op onleesbare foto's — automatisch terug naar capture-scherm
-      const unreadableIds = (data.products || [])
-        .filter((p) => p.photo_unreadable)
-        .map((p) => p.id);
-
-      if (unreadableIds.length > 0) {
-        setPhotoUnreadableIds(unreadableIds);
-        // Reset de afbeeldingen van onleesbare producten zodat gebruiker opnieuw kan fotograferen
-        setProducts((prev) =>
-          prev.map((p) =>
-            unreadableIds.includes(p.id)
-              ? { ...p, images: [], previewUrls: [] }
-              : p,
-          ),
-        );
-        setScreen('capture');
-      } else {
-        setPhotoUnreadableIds([]);
-        setResult(data);
-        setScreen('result');
-      }
+      setResult(data);
+      setScreen('result');
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -123,14 +102,13 @@ export default function App() {
     setProducts(EMPTY_PRODUCTS());
     setResult(null);
     setError(null);
-    setPhotoUnreadableIds([]);
   }
 
   // Stap 1 = barcode, stap 2 = foto/producten, stap 3 = analyse, stap 4 = resultaat
   const stepForScreen = { barcode: 1, capture: 2, analyzing: 3, result: 4, error: 1 };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-inter">
+    <div className="min-h-screen bg-brand-light font-rethink">
       <Header demoMode={demoMode} onToggleDemoMode={() => setDemoMode((v) => !v)} />
 
       <main className="max-w-2xl mx-auto px-4 pb-16">
@@ -153,7 +131,6 @@ export default function App() {
             onUseDemoProducts={handleUseDemoProducts}
             canAnalyze={canAnalyze}
             demoMode={demoMode}
-            photoUnreadableIds={photoUnreadableIds}
           />
         )}
 
@@ -167,7 +144,7 @@ export default function App() {
             <div className="pt-6 text-center">
               <button
                 onClick={handleReset}
-                className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold py-3 px-8 rounded-xl transition-colors shadow-sm"
+                className="bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3 px-8 rounded-xl transition-colors shadow-sm"
               >
                 Vergelijk opnieuw
               </button>
@@ -186,13 +163,13 @@ export default function App() {
             <div className="flex gap-3 justify-center flex-wrap">
               <button
                 onClick={handleReset}
-                className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-medium py-2.5 px-6 rounded-xl transition-colors"
+                className="bg-white hover:bg-brand-light border border-brand-light text-brand-dark font-medium py-2.5 px-6 rounded-xl transition-colors"
               >
                 Opnieuw proberen
               </button>
               <button
                 onClick={handleUseDemoProducts}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-6 rounded-xl transition-colors"
+                className="bg-brand-blue hover:bg-brand-dark text-white font-medium py-2.5 px-6 rounded-xl transition-colors"
               >
                 🎭 Demo gebruiken
               </button>

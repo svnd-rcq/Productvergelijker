@@ -36,10 +36,10 @@ export default function ProductList({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+        <h2 className="text-sm font-semibold text-brand-dark uppercase tracking-wide font-rethink">
           Stap 2 — Voedingswaardetabel fotograferen
         </h2>
-        <span className="text-xs text-gray-400">min. 2 producten</span>
+        <span className="text-xs text-brand-dark/50">min. 2 producten</span>
       </div>
 
       {/* Producten waarbij de barcode al gevonden is — compact samenvatting */}
@@ -49,20 +49,20 @@ export default function ProductList({
         return (
           <div
             key={product.id}
-            className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 flex items-center gap-3"
+            className="bg-brand-green/10 border border-brand-green/30 rounded-2xl px-4 py-3 flex items-center gap-3"
           >
-            <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
-              <span className="text-green-700 text-sm font-bold">{letter}</span>
+              <div className="w-7 h-7 bg-brand-green/20 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-brand-dark text-sm font-bold font-rethink">{letter}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-green-800 truncate">
+              <p className="text-sm font-semibold text-brand-dark truncate font-rethink">
                 {product.barcodeData.name || `Product ${letter}`}
               </p>
               {product.barcodeData.brand && (
-                <p className="text-xs text-green-600 truncate">{product.barcodeData.brand}</p>
+                <p className="text-xs text-brand-dark/60 truncate font-rethink">{product.barcodeData.brand}</p>
               )}
             </div>
-            <span className="text-xs text-green-700 font-medium shrink-0">✓ Barcode</span>
+            <span className="text-xs text-brand-green font-medium shrink-0 font-rethink">✓ Barcode</span>
           </div>
         );
       })}
@@ -86,7 +86,7 @@ export default function ProductList({
       {products.length < 5 && (
         <button
           onClick={addProduct}
-          className="w-full border-2 border-dashed border-gray-200 rounded-2xl py-3 text-sm text-gray-400 hover:border-purple-200 hover:text-purple-500 transition-colors font-medium"
+          className="w-full border-2 border-dashed border-brand-blue/30 rounded-2xl py-3 text-sm text-brand-dark/50 hover:border-brand-blue hover:text-brand-blue transition-colors font-medium font-rethink"
         >
           + Product toevoegen
         </button>
@@ -98,7 +98,7 @@ export default function ProductList({
         {!hasAnyImage && productsWithBarcode.length === 0 && (
           <button
             onClick={onUseDemoProducts}
-            className="w-full bg-purple-50 hover:bg-purple-100 active:bg-purple-200 text-purple-700 font-semibold py-3.5 rounded-xl border border-purple-200 transition-colors"
+            className="w-full bg-brand-light hover:bg-brand-blue/20 active:bg-brand-blue/30 text-brand-dark font-semibold py-3.5 rounded-xl border border-brand-blue/30 transition-colors font-rethink"
           >
             🎭 Gebruik demo-producten (pindakaas)
           </button>
@@ -111,8 +111,8 @@ export default function ProductList({
             disabled={!canAnalyze}
             className={`w-full font-semibold py-3.5 rounded-xl transition-colors ${
               canAnalyze
-                ? 'bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white shadow-sm'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                ? 'bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white shadow-sm'
+                : 'bg-brand-light text-brand-dark/30 cursor-not-allowed'
             }`}
           >
             {demoMode && !hasAnyImage ? '🎭 Demo starten' : '🔍 Analyse starten'}
@@ -120,7 +120,7 @@ export default function ProductList({
         )}
 
         {demoMode && (
-          <p className="text-center text-xs text-gray-400">
+          <p className="text-center text-xs text-brand-dark/50 font-rethink">
             Demo-modus actief – mockdata wordt gebruikt, geen OpenAI-call
           </p>
         )}

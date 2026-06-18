@@ -24,10 +24,10 @@ export default function AnalyzeScreen() {
   return (
     <div className="mt-14 flex flex-col items-center px-4">
       {/* Spinner */}
-      <div className="w-14 h-14 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-6" />
+      <div className="w-14 h-14 border-4 border-brand-blue/30 border-t-brand-blue rounded-full animate-spin mb-6" />
 
-      <h2 className="text-xl font-bold text-gray-900 mb-1">Producten analyseren…</h2>
-      <p className="text-sm text-gray-500 mb-8 text-center">
+      <h2 className="text-xl font-semibold text-brand-dark mb-1 font-rethink">Producten analyseren…</h2>
+      <p className="text-sm text-brand-dark/60 mb-8 text-center font-rethink">
         AI is bezig met het herkennen van de productinformatie
       </p>
 
@@ -40,23 +40,23 @@ export default function AnalyzeScreen() {
               key={i}
               className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-500 ${
                 done
-                  ? 'bg-green-50 border-green-100'
+                  ? 'bg-brand-green/10 border-brand-green/40'
                   : active
-                  ? 'bg-purple-50 border-purple-200'
-                  : 'bg-gray-50 border-gray-100 opacity-40'
+                  ? 'bg-brand-blue/10 border-brand-blue/40'
+                  : 'bg-brand-light/60 border-brand-light opacity-40'
               }`}
             >
               <span className="text-xl">{step.icon}</span>
               <span
-                className={`flex-1 text-sm font-medium ${
-                  done ? 'text-green-700' : active ? 'text-purple-700' : 'text-gray-400'
+                className={`flex-1 text-sm font-medium font-rethink ${
+                  done ? 'text-brand-green' : active ? 'text-brand-blue' : 'text-brand-dark/30'
                 }`}
               >
                 {step.label}
               </span>
-              {done && <span className="text-green-500 font-bold text-sm">✓</span>}
+              {done && <span className="text-brand-green font-bold text-sm">✓</span>}
               {active && (
-                <span className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block" />
+                <span className="w-4 h-4 border-2 border-brand-blue border-t-transparent rounded-full animate-spin inline-block" />
               )}
             </div>
           );

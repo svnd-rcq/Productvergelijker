@@ -29,37 +29,37 @@ export default function SummaryPanel({ result }) {
   });
 
   return (
-    <div className="mt-5 bg-purple-50 border border-purple-100 rounded-2xl p-5">
+    <div className="mt-5 bg-brand-dark border border-brand-dark rounded-2xl p-5">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">🤖</span>
-        <h3 className="font-bold text-purple-900 text-base">AI Samenvatting</h3>
+        <h3 className="font-semibold text-white text-base font-rethink">AI Samenvatting</h3>
       </div>
 
       {winner && (
-        <div className="bg-white rounded-xl p-3 mb-4 border border-purple-100 flex items-center gap-3">
+        <div className="bg-white/10 rounded-xl p-3 mb-4 border border-brand-blue/30 flex items-center gap-3">
           <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
             🏆
           </div>
           <div>
-            <div className="text-xs text-gray-400 font-medium">Aanbevolen product</div>
-            <div className="font-semibold text-gray-800 text-sm">{winner.name}</div>
+            <div className="text-xs text-brand-light/60 font-medium font-rethink">Aanbevolen product</div>
+            <div className="font-semibold text-white text-sm font-rethink">{winner.name}</div>
           </div>
         </div>
       )}
 
       {summary && (
-        <p className="text-sm text-gray-700 mb-4 leading-relaxed">{summary}</p>
+        <p className="text-sm text-brand-light mb-4 leading-relaxed font-rethink">{summary}</p>
       )}
 
       {insights.length > 0 && (
         <ul className="space-y-2">
           {insights.map((insight, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+            <li key={i} className="flex items-start gap-2 text-sm text-brand-light font-rethink">
               <span className="text-base leading-5 flex-shrink-0">{insight.icon}</span>
               <span>{insight.text}</span>
             </li>
           ))}
-          <li className="flex items-start gap-2 text-sm text-amber-700">
+          <li className="flex items-start gap-2 text-sm text-yellow-300 font-rethink">
             <span className="text-base leading-5 flex-shrink-0">⚠️</span>
             <span>Controleer bij twijfel altijd het originele etiket</span>
           </li>
