@@ -118,9 +118,9 @@ export default function App() {
     setError(null);
   }
 
-  // Stap 1 = profiel, stap 2 = barcode, stap 3 = foto/producten, stap 4 = analyse, stap 5 = resultaat
-  const stepForScreen = { profile: 1, capture: 2, barcode: 3, analyzing: 4, result: 5, error: 1 };
-  const screenForStep = { 1: 'profile', 2: 'capture', 3: 'barcode' };
+  // Stap 1 = profiel, stap 2 = barcode, stap 3 = analyse, stap 4 = resultaat
+  const stepForScreen = { profile: 1, barcode: 2, capture: 2, analyzing: 3, result: 4, error: 1 };
+  const screenForStep = { 1: 'profile', 2: 'barcode' };
 
   function handleStepClick(stepNum) {
     const target = screenForStep[stepNum];
