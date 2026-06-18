@@ -52,12 +52,14 @@ export default function SummaryPanel({ result }) {
   });
 
   // Allergiecheck-inzicht
+  const allergyHits = [];
   if (profiles.includes('allergiecheck') && allergens.length > 0) {
     const allergenLabel = allergens.join(', ');
     products.forEach((p) => {
       const productAllergens = (p.allergens || []).map((a) => a.toLowerCase());
       const conflicting = allergens.filter((a) => productAllergens.includes(a.toLowerCase()));
       if (conflicting.length > 0) {
+        allergyHits.push({ product: p, conflicting });
         insights.push({
           icon: '⚠️',
           text: `${displayName(p)} bevat: ${conflicting.join(', ')}`,
@@ -98,6 +100,35 @@ export default function SummaryPanel({ result }) {
           <div className="font-semibold text-white text-sm font-rethink">{displayName(winner)}</div>
         </div>
       </div>
+
+      {allergyHits.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {allergyHits.map(({ product, conflicting }) => (
+            <div
+              key={product.id}
+              className="flex items-start gap-3 bg-red-600 border border-red-400 rounded-xl p-3"
+            >
+              <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+                🤧
+              </div>
+              <div>
+                <div className="text-white font-bold text-sm font-rethink leading-tight">
+                  Let op: allergiewaarschuwing!
+                </div>
+                <div className="text-red-100 text-sm font-rethink mt-0.5">
+                  <span className="font-semibold">{displayName(product)}</span> bevat{' '}
+                  {conflicting.map((a, i) => (
+                    <span key={a}>
+                      <span className="font-bold uppercase">{a}</span>
+                      {i < conflicting.length - 1 ? ', ' : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

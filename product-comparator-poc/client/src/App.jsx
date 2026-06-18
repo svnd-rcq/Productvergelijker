@@ -207,7 +207,7 @@ export default function App() {
                 onClick={handleReset}
                 className="w-full sm:w-auto bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3 px-8 rounded-xl transition-colors shadow-sm"
               >
-                Vergelijk opnieuw
+                Qompare opnieuw
               </button>
             </div>
           </div>
