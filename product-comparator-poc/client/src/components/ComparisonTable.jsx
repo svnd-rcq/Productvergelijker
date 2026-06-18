@@ -17,19 +17,19 @@ const CRITERIA = [
     confidenceField: 'quantity',
   },
   {
-    key: 'price_per_100g',
-    label: 'Prijs per 100 g',
-    render: (p) => (p.price_per_100g != null ? formatPrice(p.price_per_100g) : 'Niet gevonden'),
-    bestKey: 'price_per_100g',
-    confidenceField: 'price',
-  },
-  {
     key: '_divider',
     label: null,
     render: null,
     bestKey: null,
     confidenceField: null,
     divider: true,
+  },
+  {
+    key: 'price_per_100g',
+    label: 'Prijs',
+    render: (p) => (p.price_per_100g != null ? formatPrice(p.price_per_100g) : 'Niet gevonden'),
+    bestKey: 'price_per_100g',
+    confidenceField: 'price',
   },
   {
     key: 'energy_kcal',

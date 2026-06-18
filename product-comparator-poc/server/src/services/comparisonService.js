@@ -80,12 +80,21 @@ function getProfileWinner(products, profiles = [], allergens = []) {
   const scores = {};
   products.forEach((p) => (scores[p.id] = 0));
 
-  // Verwerk allergen-check apart
-  if (profiles.includes('allergiecheck') && allergens.length > 0) {
+  // Bepaal altijd welke producten een allergeenconflict hebben
+  const conflictIds = new Set();
+  if (allergens.length > 0) {
     products.forEach((p) => {
       const productAllergens = (p.allergens || []).map((a) => a.toLowerCase());
-      const hasConflict = allergens.some((a) => productAllergens.includes(a.toLowerCase()));
-      if (!hasConflict) scores[p.id] += 2; // geef meer gewicht aan allergen-check
+      if (allergens.some((a) => productAllergens.includes(a.toLowerCase()))) {
+        conflictIds.add(p.id);
+      }
+    });
+  }
+
+  // Verwerk allergen-check apart (extra gewicht voor veilige producten)
+  if (profiles.includes('allergiecheck') && allergens.length > 0) {
+    products.forEach((p) => {
+      if (!conflictIds.has(p.id)) scores[p.id] += 2;
     });
   }
 
@@ -102,10 +111,14 @@ function getProfileWinner(products, profiles = [], allergens = []) {
     if (winnerId) scores[winnerId] = (scores[winnerId] || 0) + 1;
   }
 
-  // Geen enkel relevant criterium gevonden
-  if (Object.values(scores).every((s) => s === 0)) return null;
+  // Sluit altijd producten met allergeenconflict uit als winnaar (als er veilige alternatieven zijn)
+  const safeEntries = Object.entries(scores).filter(([id]) => !conflictIds.has(id));
+  const entriesToConsider = safeEntries.length > 0 ? safeEntries : Object.entries(scores);
 
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  // Geen enkel relevant criterium gevonden
+  if (entriesToConsider.every(([, s]) => s === 0)) return null;
+
+  const sorted = entriesToConsider.sort((a, b) => b[1] - a[1]);
   // Bij gelijke score: geen winnaar aanwijzen
   if (sorted.length >= 2 && sorted[0][1] === sorted[1][1]) return null;
   return sorted[0][0];

@@ -257,10 +257,7 @@ export default function BarcodeScanStep({ products, onNext, selectedProfiles = [
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-brand-dark uppercase tracking-wide font-rethink">
-          Stap 1 — Barcode scannen
-        </h2>
+      <div className="flex items-center justify-end">
         <span className="text-xs text-brand-dark/50">min. 2 producten</span>
       </div>
 

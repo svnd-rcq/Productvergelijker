@@ -188,17 +188,35 @@ function buildSummary(products, best, profiles = [], allergens = [], profileWinn
   const lines = [];
   const profileLabels = profiles.map((p) => PROFILE_LABELS[p] || p).join(', ');
 
-  // Profielwinnaar-zin
-  if (profileWinner) {
+  // Bepaal welke producten een allergeenconflict hebben met de gebruiker
+  const conflictMap = {};
+  if (allergens.length > 0) {
+    products.forEach((p) => {
+      const productAllergens = (p.allergens || []).map((a) => a.toLowerCase());
+      const conflicts = allergens.filter((a) => productAllergens.includes(a.toLowerCase()));
+      if (conflicts.length > 0) conflictMap[p.id] = conflicts;
+    });
+  }
+
+  // Waarschuw voor producten die allergen van de gebruiker bevatten
+  Object.entries(conflictMap).forEach(([id, conflicts]) => {
+    const product = products.find((p) => p.id === id);
+    if (product) {
+      lines.push(`⚠️ ${productDisplayName(product)} bevat ${conflicts.join(', ')}, waar je allergisch voor bent – niet geschikt voor jou.`);
+    }
+  });
+
+  // Profielwinnaar-zin (alleen als product geen allergeenconflict heeft)
+  if (profileWinner && !conflictMap[profileWinner]) {
     const winner = products.find((p) => p.id === profileWinner);
     if (winner) {
       lines.push(`${productDisplayName(winner)} past het beste bij jouw profiel "${profileLabels}".`);
     }
   }
 
-  // Specifieke inzichten
+  // Specifieke inzichten (sla over als winnaar voor dat criterium een allergeenconflict heeft)
   const addInsight = (key, template) => {
-    if (best[key]) {
+    if (best[key] && !conflictMap[best[key]]) {
       const winner = products.find((p) => p.id === best[key]);
       if (winner) lines.push(template(productDisplayName(winner)));
     }
@@ -209,10 +227,10 @@ function buildSummary(products, best, profiles = [], allergens = [], profileWinn
   addInsight('salt_g',         (n) => `${n} bevat minder zout.`);
   addInsight('energy_kcal',    (n) => `${n} heeft minder calorieën per 100 gram.`);
 
-  // Allergiecheck-notitie
-  if (profiles.includes('allergiecheck') && allergens.length > 0) {
+  // Allergiecheck-notitie (alleen extra als profiel actief is en nog niet gewaarschuwd)
+  if (profiles.includes('allergiecheck') && allergens.length > 0 && Object.keys(conflictMap).length === 0) {
     const allergenLabels = allergens.join(', ');
-    lines.push(`Let op allergenen: ${allergenLabels}.`);
+    lines.push(`Geen van de producten bevat ${allergenLabels} – veilig voor jou.`);
   }
 
   // Ontbrekende data voor profielen die dit vereisen
