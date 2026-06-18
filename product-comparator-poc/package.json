@@ -10,6 +10,9 @@
     "build": "npm run build --prefix client",
     "ngrok": "ngrok start --all --config ngrok.yml"
   },
+  "dependencies": {
+    "openai": "^4.28.0"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2"
   }
