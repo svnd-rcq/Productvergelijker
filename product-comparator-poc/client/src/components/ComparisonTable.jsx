@@ -97,14 +97,14 @@ export default function ComparisonTable({ result }) {
     <div className="mt-6">
       <h2 className="text-lg font-semibold text-brand-dark mb-3 font-rethink">Vergelijkingstabel</h2>
       <div className="overflow-x-auto rounded-2xl border border-brand-light shadow-sm">
-        <table className="w-full bg-white text-sm">
+        <table className="w-full bg-white text-sm table-fixed">
           <thead>
             <tr className="bg-brand-dark border-b border-brand-dark/80">
-              <th className="text-left text-xs font-semibold text-brand-light uppercase tracking-wide px-3 py-3 w-24 font-rethink">
+              <th className="text-left text-xs font-semibold text-brand-light uppercase tracking-wide px-3 py-3 w-1/4 font-rethink">
                 Criterium
               </th>
               {products.map((p, i) => (
-                <th key={p.id} className="px-2 py-3 text-center">
+                <th key={p.id} className="px-2 py-3 text-center w-auto">
                   <div className="font-semibold text-white leading-tight font-rethink">
                     {p.name ?? `Product ${i + 1}`}
                   </div>
