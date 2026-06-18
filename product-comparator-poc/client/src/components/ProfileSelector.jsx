@@ -199,6 +199,13 @@ export default function ProfileSelector({ onNext }) {
       >
         Analyseer producten →
       </button>
+
+      <button
+        onClick={() => onNext(['bewuste_keuze'], [])}
+        className="w-full text-brand-dark/50 hover:text-brand-dark text-sm font-rethink py-1 transition-colors"
+      >
+        Overslaan
+      </button>
     </div>
   );
 }

@@ -24,36 +24,44 @@ const CRITERIA = [
     confidenceField: 'price',
   },
   {
+    key: '_divider',
+    label: null,
+    render: null,
+    bestKey: null,
+    confidenceField: null,
+    divider: true,
+  },
+  {
     key: 'energy_kcal',
-    label: 'Calorieën per 100 g',
+    label: 'Calorieën',
     render: (p) => formatNutrition(p.nutrition_per_100g?.energy_kcal, 'kcal'),
     bestKey: 'energy_kcal',
     confidenceField: 'nutrition',
   },
   {
     key: 'sugar_g',
-    label: 'Suiker per 100 g',
+    label: 'Suiker',
     render: (p) => formatNutrition(p.nutrition_per_100g?.sugar_g, 'g'),
     bestKey: 'sugar_g',
     confidenceField: 'nutrition',
   },
   {
     key: 'salt_g',
-    label: 'Zout per 100 g',
+    label: 'Zout',
     render: (p) => formatNutrition(p.nutrition_per_100g?.salt_g, 'g'),
     bestKey: 'salt_g',
     confidenceField: 'nutrition',
   },
   {
     key: 'fat_g',
-    label: 'Vet per 100 g',
+    label: 'Vet',
     render: (p) => formatNutrition(p.nutrition_per_100g?.fat_g, 'g'),
     bestKey: null,
     confidenceField: 'nutrition',
   },
   {
     key: 'protein_g',
-    label: 'Eiwitten per 100 g',
+    label: 'Eiwitten',
     render: (p) => formatNutrition(p.nutrition_per_100g?.protein_g, 'g'),
     bestKey: 'protein_g',
     confidenceField: 'nutrition',
@@ -108,7 +116,20 @@ export default function ComparisonTable({ result }) {
             </tr>
           </thead>
           <tbody>
-            {CRITERIA.map((criterion, rowIdx) => (
+            {CRITERIA.map((criterion, rowIdx) => {
+              if (criterion.divider) {
+                return (
+                  <tr key={criterion.key}>
+                    <td
+                      colSpan={products.length + 1}
+                      className="px-3 py-1.5 bg-brand-light/60 text-brand-dark/50 text-xs font-semibold uppercase tracking-wide font-rethink"
+                    >
+                      Per 100 g
+                    </td>
+                  </tr>
+                );
+              }
+              return (
               <tr
                 key={criterion.key}
                 className={`border-b border-gray-50 last:border-0 ${
@@ -124,28 +145,20 @@ export default function ComparisonTable({ result }) {
                     <td
                       key={p.id}
                       className={`px-2 py-3 text-center transition-colors ${
-                        isBest ? 'bg-brand-green/10' : ''
+                        isBest ? 'bg-brand-green/30' : ''
                       }`}
                     >
                       <div className="flex items-center justify-center gap-1 flex-wrap">
                         <span className={`font-medium font-rethink ${isBest ? 'text-brand-green' : 'text-brand-dark'}`}>
                           {criterion.render(p)}
                         </span>
-                        {isBest && (
-                          <span className="text-xs bg-brand-green/20 text-brand-dark px-1.5 py-0.5 rounded-full font-semibold font-rethink">
-                            Beste
-                          </span>
-                        )}
-                        <ConfidenceBadge
-                          confidence={p.confidence}
-                          field={criterion.confidenceField}
-                        />
                       </div>
                     </td>
                   );
                 })}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

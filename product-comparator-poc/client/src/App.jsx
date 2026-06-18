@@ -8,6 +8,7 @@ import ProfileSelector from './components/ProfileSelector.jsx';
 import AnalyzeScreen from './components/AnalyzeScreen.jsx';
 import ComparisonTable from './components/ComparisonTable.jsx';
 import SummaryPanel from './components/SummaryPanel.jsx';
+import InsightsCard from './components/InsightsCard.jsx';
 import Disclaimer from './components/Disclaimer.jsx';
 
 const EMPTY_PRODUCTS = () => [
@@ -119,6 +120,12 @@ export default function App() {
 
   // Stap 1 = profiel, stap 2 = barcode, stap 3 = foto/producten, stap 4 = analyse, stap 5 = resultaat
   const stepForScreen = { profile: 1, capture: 2, barcode: 3, analyzing: 4, result: 5, error: 1 };
+  const screenForStep = { 1: 'profile', 2: 'capture', 3: 'barcode' };
+
+  function handleStepClick(stepNum) {
+    const target = screenForStep[stepNum];
+    if (target) setScreen(target);
+  }
 
   if (showSplash) {
     return <SplashScreen onDismiss={() => setShowSplash(false)} />;
@@ -130,7 +137,10 @@ export default function App() {
 
       <main className="max-w-2xl mx-auto px-4 pb-16">
         {screen !== 'analyzing' && (
-          <StepIndicator currentStep={stepForScreen[screen] ?? 1} />
+          <StepIndicator
+            currentStep={stepForScreen[screen] ?? 1}
+            onStepClick={handleStepClick}
+          />
         )}
 
         {screen === 'barcode' && (
@@ -160,13 +170,20 @@ export default function App() {
 
         {screen === 'result' && result && (
           <div className="space-y-1">
-            <ComparisonTable result={result} />
             <SummaryPanel result={result} />
+            <ComparisonTable result={result} />
+            <InsightsCard result={result} />
             <Disclaimer />
-            <div className="pt-6 text-center">
+            <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                onClick={() => setScreen('profile')}
+                className="w-full sm:w-auto border border-brand-dark/30 hover:border-brand-dark text-brand-dark font-semibold py-3 px-8 rounded-xl transition-colors"
+              >
+                ← Terug naar profielen
+              </button>
               <button
                 onClick={handleReset}
-                className="bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3 px-8 rounded-xl transition-colors shadow-sm"
+                className="w-full sm:w-auto bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3 px-8 rounded-xl transition-colors shadow-sm"
               >
                 Vergelijk opnieuw
               </button>

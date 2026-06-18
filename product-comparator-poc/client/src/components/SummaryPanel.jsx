@@ -73,16 +73,12 @@ export default function SummaryPanel({ result }) {
   // Profielen die onvoldoende data hebben
   const unavailableSelected = profiles.filter((p) => UNAVAILABLE_PROFILES.includes(p));
 
-  return (
-    <div className="mt-5 bg-brand-dark border border-brand-dark rounded-2xl p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-xl">🤖</span>
-        <h3 className="font-semibold text-white text-base font-rethink">AI Samenvatting</h3>
-      </div>
+  if (!winner) return null;
 
-      {/* Geselecteerde profielen */}
+  return (
+    <div className="mt-5 bg-brand-dark border border-brand-dark rounded-2xl p-4">
       {profileLabels.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {profileLabels.map((p) => (
             <span
               key={p.key}
@@ -93,50 +89,15 @@ export default function SummaryPanel({ result }) {
           ))}
         </div>
       )}
-
-      {winner && (
-        <div className="bg-white/10 rounded-xl p-3 mb-4 border border-brand-blue/30 flex items-center gap-3">
-          <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
-            🏆
-          </div>
-          <div>
-            <div className="text-xs text-brand-light/60 font-medium font-rethink">Aanbevolen product</div>
-            <div className="font-semibold text-white text-sm font-rethink">{displayName(winner)}</div>
-          </div>
+      <div className="bg-white/10 rounded-xl p-3 border border-brand-blue/30 flex items-center gap-3">
+        <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+          🏆
         </div>
-      )}
-
-      {summary && (
-        <p className="text-sm text-brand-light mb-4 leading-relaxed font-rethink">{summary}</p>
-      )}
-
-      {insights.length > 0 && (
-        <ul className="space-y-2">
-          {insights.map((insight, i) => (
-            <li
-              key={i}
-              className={`flex items-start gap-2 text-sm font-rethink ${
-                insight.warning ? 'text-yellow-300' : 'text-brand-light'
-              }`}
-            >
-              <span className="text-base leading-5 flex-shrink-0">{insight.icon}</span>
-              <span>{insight.text}</span>
-            </li>
-          ))}
-          {unavailableSelected.length > 0 && (
-            <li className="flex items-start gap-2 text-sm text-brand-light/50 font-rethink">
-              <span className="text-base leading-5 flex-shrink-0">ℹ️</span>
-              <span>
-                Informatie voor {unavailableSelected.join(', ')} is niet beschikbaar op het etiket.
-              </span>
-            </li>
-          )}
-          <li className="flex items-start gap-2 text-sm text-yellow-300 font-rethink">
-            <span className="text-base leading-5 flex-shrink-0">⚠️</span>
-            <span>Controleer bij twijfel altijd het originele etiket</span>
-          </li>
-        </ul>
-      )}
+        <div>
+          <div className="text-xs text-brand-light/60 font-medium font-rethink">Aanbevolen product</div>
+          <div className="font-semibold text-white text-sm font-rethink">{displayName(winner)}</div>
+        </div>
+      </div>
     </div>
   );
 }
