@@ -11,11 +11,16 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 const SCAN_TIMEOUT_MS = 15000;
 
-export default function BarcodeScanStep({ products, onNext }) {
+const PRICE_AWARE_PROFILES = ['bewuste_keuze', 'budgetbewust', 'gezin_balans', 'sportief'];
+
+export default function BarcodeScanStep({ products, onNext, selectedProfiles = [] }) {
   const [statuses, setStatuses] = useState(() =>
     Object.fromEntries(
       products.map((p) => [p.id, { state: 'idle', data: null }]),
     ),
+  );
+  const [priceInputs, setPriceInputs] = useState(() =>
+    Object.fromEntries(products.map((p) => [p.id, ''])),
   );
   const [toast, setToast] = useState(null); // { type: 'yellow'|'red', message }
   const [activeScan, setActiveScan] = useState(null); // productId dat nu scant
@@ -201,6 +206,31 @@ export default function BarcodeScanStep({ products, onNext }) {
     };
   }, [activeScan, setStatus, showToast]);
 
+  const showPriceInput = selectedProfiles.some((p) => PRICE_AWARE_PROFILES.includes(p));
+
+  function handlePriceConfirm(productId) {
+    const raw = priceInputs[productId];
+    const price = parseFloat(raw.replace(',', '.'));
+    if (isNaN(price) || price <= 0) return;
+    setStatuses((prev) => {
+      const data = prev[productId]?.data ?? {};
+      const qty = data.quantity?.value;
+      const unit = data.quantity?.unit;
+      const price_per_100g =
+        qty && (unit === 'g' || unit === 'ml')
+          ? Math.round((price / qty) * 100 * 100) / 100
+          : null;
+      return {
+        ...prev,
+        [productId]: {
+          ...prev[productId],
+          data: { ...data, price, price_per_100g },
+          priceConfirmed: true,
+        },
+      };
+    });
+  }
+
   // ─── navigatie naar volgende stap ───────────────────────────────────────────
 
   function handleNext() {
@@ -285,7 +315,7 @@ export default function BarcodeScanStep({ products, onNext }) {
                 }}
                 className="w-full bg-brand-blue hover:bg-brand-dark active:bg-brand-dark text-white font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 font-rethink"
               >
-                <span aria-hidden="true">📷</span> Barcode scannen
+                Barcode scannen
               </button>
             )}
 
@@ -324,6 +354,58 @@ export default function BarcodeScanStep({ products, onNext }) {
                     )}
                   </div>
                 </div>
+
+                {/* Prijs-invoer: toon alleen als profiel prijsbewust is én prijs onbekend */}
+                {showPriceInput && !status.data.price && !status.priceConfirmed && (
+                  <div className="bg-brand-light border border-brand-blue/20 rounded-xl p-3 space-y-2">
+                    <p className="text-xs text-brand-dark/70 font-rethink">
+                      💰 Wat is de prijs van dit product? (optioneel)
+                    </p>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-dark/50 text-sm">€</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={priceInputs[product.id]}
+                          onChange={(e) =>
+                            setPriceInputs((prev) => ({ ...prev, [product.id]: e.target.value }))
+                          }
+                          onKeyDown={(e) => e.key === 'Enter' && handlePriceConfirm(product.id)}
+                          className="w-full pl-7 pr-3 py-2 border border-brand-blue/30 rounded-lg text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-blue/40 font-rethink"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handlePriceConfirm(product.id)}
+                        className="bg-brand-blue hover:bg-brand-dark text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors font-rethink"
+                      >
+                        OK
+                      </button>
+                      <button
+                        onClick={() =>
+                          setStatuses((prev) => ({
+                            ...prev,
+                            [product.id]: { ...prev[product.id], priceConfirmed: true },
+                          }))
+                        }
+                        className="text-xs text-brand-dark/40 hover:text-brand-blue px-2 font-rethink"
+                      >
+                        Overslaan
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bevestiging nadat prijs is ingevuld */}
+                {showPriceInput && status.priceConfirmed && status.data.price && (
+                  <p className="text-xs text-brand-green font-medium font-rethink">
+                    💰 Prijs opgeslagen: € {Number(status.data.price).toFixed(2)}
+                  </p>
+                )}
+
                 <button
                   onClick={() => setStatus(product.id, { state: 'idle', data: null })}
                   className="text-xs text-brand-dark/40 hover:text-brand-blue font-medium transition-colors font-rethink"

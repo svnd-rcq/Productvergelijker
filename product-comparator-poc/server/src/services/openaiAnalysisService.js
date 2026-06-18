@@ -120,9 +120,9 @@ async function analyze(products, profiles = ['bewuste_keuze'], allergens = []) {
       id: p.id,
       name: p.barcodeData.name || null,
       brand: p.barcodeData.brand || null,
-      price: null,
+      price: p.barcodeData.price ?? null,
       quantity: p.barcodeData.quantity || { value: null, unit: null },
-      price_per_100g: null,
+      price_per_100g: p.barcodeData.price_per_100g ?? null,
       nutrition_per_100g: {
         ...(p.barcodeData.nutrition_per_100g || {}),
         fat_g: p.barcodeData.nutrition_per_100g?.fat_g ?? null,
@@ -175,6 +175,15 @@ const PROFILE_LABELS = {
   gezin_balans: 'Gezin / balans',
 };
 
+function productDisplayName(product) {
+  if (!product) return '';
+  const { name, brand } = product;
+  if (brand && name && !name.toLowerCase().includes(brand.toLowerCase())) {
+    return `${name} van ${brand}`;
+  }
+  return name || '';
+}
+
 function buildSummary(products, best, profiles = [], allergens = [], profileWinner = null) {
   const lines = [];
   const profileLabels = profiles.map((p) => PROFILE_LABELS[p] || p).join(', ');
@@ -183,7 +192,7 @@ function buildSummary(products, best, profiles = [], allergens = [], profileWinn
   if (profileWinner) {
     const winner = products.find((p) => p.id === profileWinner);
     if (winner) {
-      lines.push(`${winner.name} past het beste bij jouw profiel "${profileLabels}".`);
+      lines.push(`${productDisplayName(winner)} past het beste bij jouw profiel "${profileLabels}".`);
     }
   }
 
@@ -191,7 +200,7 @@ function buildSummary(products, best, profiles = [], allergens = [], profileWinn
   const addInsight = (key, template) => {
     if (best[key]) {
       const winner = products.find((p) => p.id === best[key]);
-      if (winner) lines.push(template(winner.name));
+      if (winner) lines.push(template(productDisplayName(winner)));
     }
   };
   addInsight('price_per_100g', (n) => `${n} is goedkoper per 100 gram.`);

@@ -1,9 +1,9 @@
 import React from 'react';
 
 const STEPS = [
-  { num: 1, label: 'Barcode' },
+  { num: 1, label: 'Profiel' },
   { num: 2, label: 'Producten' },
-  { num: 3, label: 'Profiel' },
+  { num: 3, label: 'Barcode' },
   { num: 4, label: 'Analyse' },
   { num: 5, label: 'Resultaat' },
 ];

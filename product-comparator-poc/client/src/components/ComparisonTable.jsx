@@ -89,14 +89,14 @@ export default function ComparisonTable({ result }) {
     <div className="mt-6">
       <h2 className="text-lg font-semibold text-brand-dark mb-3 font-rethink">Vergelijkingstabel</h2>
       <div className="overflow-x-auto rounded-2xl border border-brand-light shadow-sm">
-        <table className="w-full min-w-[380px] bg-white text-sm">
+        <table className="w-full bg-white text-sm">
           <thead>
             <tr className="bg-brand-dark border-b border-brand-dark/80">
-              <th className="text-left text-xs font-semibold text-brand-light uppercase tracking-wide px-4 py-3 w-36 font-rethink">
+              <th className="text-left text-xs font-semibold text-brand-light uppercase tracking-wide px-3 py-3 w-24 font-rethink">
                 Criterium
               </th>
               {products.map((p, i) => (
-                <th key={p.id} className="px-4 py-3 text-center">
+                <th key={p.id} className="px-2 py-3 text-center">
                   <div className="font-semibold text-white leading-tight font-rethink">
                     {p.name ?? `Product ${i + 1}`}
                   </div>
@@ -115,7 +115,7 @@ export default function ComparisonTable({ result }) {
                   rowIdx % 2 === 1 ? 'bg-brand-light/40' : ''
                 }`}
               >
-                <td className="px-4 py-3 text-brand-dark font-medium whitespace-nowrap font-rethink">
+                <td className="px-3 py-3 text-brand-dark font-medium text-xs leading-snug font-rethink">
                   {criterion.label}
                 </td>
                 {products.map((p) => {
@@ -123,7 +123,7 @@ export default function ComparisonTable({ result }) {
                   return (
                     <td
                       key={p.id}
-                      className={`px-4 py-3 text-center transition-colors ${
+                      className={`px-2 py-3 text-center transition-colors ${
                         isBest ? 'bg-brand-green/10' : ''
                       }`}
                     >

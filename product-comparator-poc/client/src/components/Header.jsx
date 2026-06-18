@@ -4,20 +4,12 @@ export default function Header({ demoMode, onToggleDemoMode }) {
   return (
     <header className="bg-brand-dark border-b border-brand-dark shadow-sm sticky top-0 z-20">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center min-w-0">
           <img
-            src="/Reconneqt_logo_transparant_zonder_tagline.png"
-            alt="Reconneqt"
-            className="h-8 w-auto flex-shrink-0"
+            src="/Qompare text logo.png"
+            alt="Qompare"
+            className="h-9 w-auto flex-shrink-0"
           />
-          <div className="min-w-0">
-            <h1 className="text-base font-semibold text-white leading-tight truncate font-rethink">
-              Productvergelijker
-            </h1>
-            <p className="text-xs text-brand-light leading-tight hidden sm:block opacity-80">
-              Vergelijk producten op basis van foto's, prijs en voedingswaarden.
-            </p>
-          </div>
         </div>
 
         <button

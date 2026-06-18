@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SplashScreen from './components/SplashScreen.jsx';
 import Header from './components/Header.jsx';
 import StepIndicator from './components/StepIndicator.jsx';
 import BarcodeScanStep from './components/BarcodeScanStep.jsx';
@@ -16,7 +17,8 @@ const EMPTY_PRODUCTS = () => [
 
 // Schermen: barcode | capture | profile | analyzing | result | error
 export default function App() {
-  const [screen, setScreen] = useState('barcode');
+  const [showSplash, setShowSplash] = useState(true);
+  const [screen, setScreen] = useState('profile');
   const [products, setProducts] = useState(EMPTY_PRODUCTS());
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -86,37 +88,41 @@ export default function App() {
       // Ga naar de foto-stap voor producten zonder barcode-data
       setScreen('capture');
     } else {
-      // Alle producten hebben barcode-data — naar profielkeuze
-      setScreen('profile');
+      // Alle producten hebben barcode-data — direct analyseren
+      runAnalysis(updatedProducts);
     }
   }
 
   function handleProfileNext(profiles, allergens) {
     setSelectedProfiles(profiles);
     setSelectedAllergens(allergens);
-    runAnalysis(products, profiles, allergens);
+    setScreen('barcode');
   }
 
   function handleAnalyze() {
-    setScreen('profile');
+    runAnalysis(products);
   }
 
   function handleUseDemoProducts() {
     const demoList = EMPTY_PRODUCTS(); // lege IDs, backend vult mockdata in
     setProducts(demoList);
     setDemoMode(true);
-    setScreen('profile');
+    runAnalysis(demoList, selectedProfiles, selectedAllergens);
   }
 
   function handleReset() {
-    setScreen('barcode');
+    setScreen('profile');
     setProducts(EMPTY_PRODUCTS());
     setResult(null);
     setError(null);
   }
 
-  // Stap 1 = barcode, stap 2 = foto/producten, stap 3 = profiel, stap 4 = analyse, stap 5 = resultaat
-  const stepForScreen = { barcode: 1, capture: 2, profile: 3, analyzing: 4, result: 5, error: 1 };
+  // Stap 1 = profiel, stap 2 = barcode, stap 3 = foto/producten, stap 4 = analyse, stap 5 = resultaat
+  const stepForScreen = { profile: 1, capture: 2, barcode: 3, analyzing: 4, result: 5, error: 1 };
+
+  if (showSplash) {
+    return <SplashScreen onDismiss={() => setShowSplash(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-brand-light font-rethink">
@@ -131,6 +137,7 @@ export default function App() {
           <BarcodeScanStep
             products={products}
             onNext={handleBarcodeNext}
+            selectedProfiles={selectedProfiles}
           />
         )}
 

@@ -1,6 +1,15 @@
 import React from 'react';
 import { PROFILES } from './ProfileSelector.jsx';
 
+function displayName(product) {
+  if (!product) return '';
+  const { name, brand } = product;
+  if (brand && name && !name.toLowerCase().includes(brand.toLowerCase())) {
+    return `${name} van ${brand}`;
+  }
+  return name || '';
+}
+
 const INSIGHT_CONFIG = [
   { key: 'price_per_100g', icon: '💰', template: (n) => `${n} is goedkoper per 100 gram` },
   { key: 'sugar_g', icon: '🍬', template: (n) => `${n} bevat minder suiker` },
@@ -39,7 +48,7 @@ export default function SummaryPanel({ result }) {
   const insights = INSIGHT_CONFIG.flatMap(({ key, icon, template }) => {
     if (!best[key]) return [];
     const w = products.find((p) => p.id === best[key]);
-    return w ? [{ icon, text: template(w.name) }] : [];
+    return w ? [{ icon, text: template(displayName(w)) }] : [];
   });
 
   // Allergiecheck-inzicht
@@ -51,7 +60,7 @@ export default function SummaryPanel({ result }) {
       if (conflicting.length > 0) {
         insights.push({
           icon: '⚠️',
-          text: `${p.name} bevat: ${conflicting.join(', ')}`,
+          text: `${displayName(p)} bevat: ${conflicting.join(', ')}`,
           warning: true,
         });
       }
@@ -92,7 +101,7 @@ export default function SummaryPanel({ result }) {
           </div>
           <div>
             <div className="text-xs text-brand-light/60 font-medium font-rethink">Aanbevolen product</div>
-            <div className="font-semibold text-white text-sm font-rethink">{winner.name}</div>
+            <div className="font-semibold text-white text-sm font-rethink">{displayName(winner)}</div>
           </div>
         </div>
       )}
