@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-export default function ProductCapture({ product, index, onUpdate, onRemove, canRemove }) {
+export default function ProductCapture({ product, index, onUpdate, onRemove, canRemove, isUnreadable }) {
   const fileInputRef = useRef(null);
 
   function handleFileChange(e) {
@@ -58,7 +58,19 @@ export default function ProductCapture({ product, index, onUpdate, onRemove, can
         )}
       </div>
 
-      {/* Preview grid + add button */}
+      {/* Gele banner: foto was niet leesbaar */}
+      {isUnreadable && (
+        <div className="mb-3 bg-yellow-50 border border-yellow-300 rounded-xl px-3 py-2 flex items-start gap-2 text-xs text-yellow-800">
+          <span aria-hidden="true">⚠️</span>
+          <span>De voedingswaardetabel is niet goed leesbaar. Maak een scherpere foto met voldoende licht.</span>
+        </div>
+      )}
+
+      {/* Instructietekst boven de foto-upload */}
+      <p className="text-xs font-medium text-gray-500 mb-2">
+        Maak een duidelijke foto van de voedingswaardetabel/ingrediënten.
+      </p>
+
       {product.previewUrls.length > 0 ? (
         <div className="flex gap-2 flex-wrap">
           {product.previewUrls.map((url, i) => (

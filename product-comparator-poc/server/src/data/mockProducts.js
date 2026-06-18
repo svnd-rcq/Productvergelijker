@@ -11,7 +11,9 @@ const mockProducts = [
       sugar_g: 8,
       salt_g: 0.4,
       protein_g: 25,
+      fat_g: 52,
     },
+    allergens: ['pindas'],
     confidence: {
       name: 0.95,
       brand: 0.95,
@@ -32,7 +34,9 @@ const mockProducts = [
       sugar_g: 5,
       salt_g: 0.7,
       protein_g: 27,
+      fat_g: 48,
     },
+    allergens: ['pindas'],
     confidence: {
       name: 0.95,
       brand: 0.95,

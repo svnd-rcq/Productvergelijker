@@ -1,9 +1,10 @@
 import React from 'react';
 
 const STEPS = [
-  { num: 1, label: 'Producten' },
-  { num: 2, label: 'Analyse' },
-  { num: 3, label: 'Resultaat' },
+  { num: 1, label: 'Barcode' },
+  { num: 2, label: 'Producten' },
+  { num: 3, label: 'Analyse' },
+  { num: 4, label: 'Resultaat' },
 ];
 
 export default function StepIndicator({ currentStep }) {

@@ -4,6 +4,7 @@ require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 const express = require('express');
 const cors = require('cors');
 const analyzeRouter = require('./routes/analyze');
+const barcodeRouter = require('./routes/barcode');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,6 +14,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use('/api/analyze', analyzeRouter);
+app.use('/api/barcode', barcodeRouter);
 
 app.get('/health', (req, res) => {
   res.json({

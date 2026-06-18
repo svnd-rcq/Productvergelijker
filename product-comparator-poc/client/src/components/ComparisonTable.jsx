@@ -45,11 +45,29 @@ const CRITERIA = [
     confidenceField: 'nutrition',
   },
   {
+    key: 'fat_g',
+    label: 'Vet per 100 g',
+    render: (p) => formatNutrition(p.nutrition_per_100g?.fat_g, 'g'),
+    bestKey: null,
+    confidenceField: 'nutrition',
+  },
+  {
     key: 'protein_g',
     label: 'Eiwitten per 100 g',
     render: (p) => formatNutrition(p.nutrition_per_100g?.protein_g, 'g'),
     bestKey: 'protein_g',
     confidenceField: 'nutrition',
+  },
+  {
+    key: 'allergens',
+    label: 'Allergenen',
+    render: (p) => {
+      const list = p.allergens;
+      if (!list || list.length === 0) return 'Geen / onbekend';
+      return list.map((a) => a.charAt(0).toUpperCase() + a.slice(1)).join(', ');
+    },
+    bestKey: null,
+    confidenceField: null,
   },
 ];
 

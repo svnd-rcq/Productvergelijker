@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from './components/Header.jsx';
 import StepIndicator from './components/StepIndicator.jsx';
+import BarcodeScanStep from './components/BarcodeScanStep.jsx';
 import ProductList from './components/ProductList.jsx';
 import AnalyzeScreen from './components/AnalyzeScreen.jsx';
 import ComparisonTable from './components/ComparisonTable.jsx';
@@ -12,16 +13,17 @@ const EMPTY_PRODUCTS = () => [
   { id: 'product_2', images: [], previewUrls: [] },
 ];
 
-// Schermen: capture | analyzing | result | error
+// Schermen: barcode | capture | analyzing | result | error
 export default function App() {
-  const [screen, setScreen] = useState('capture');
+  const [screen, setScreen] = useState('barcode');
   const [products, setProducts] = useState(EMPTY_PRODUCTS());
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [demoMode, setDemoMode] = useState(true);
+  const [photoUnreadableIds, setPhotoUnreadableIds] = useState([]);
 
   const canAnalyze =
-    demoMode || products.filter((p) => p.images.length > 0).length >= 2;
+    demoMode || products.filter((p) => p.images.length > 0 || p.barcodeData).length >= 2;
 
   async function runAnalysis(productList) {
     setScreen('analyzing');
@@ -36,7 +38,11 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          products: productList.map((p) => ({ id: p.id, images: p.images })),
+          products: productList.map((p) => ({
+            id: p.id,
+            images: p.images,
+            barcodeData: p.barcodeData ?? null,
+          })),
         }),
       });
 
@@ -46,12 +52,58 @@ export default function App() {
       }
 
       const data = await response.json();
-      setResult(data);
-      setScreen('result');
+
+      // Controleer op onleesbare foto's — automatisch terug naar capture-scherm
+      const unreadableIds = (data.products || [])
+        .filter((p) => p.photo_unreadable)
+        .map((p) => p.id);
+
+      if (unreadableIds.length > 0) {
+        setPhotoUnreadableIds(unreadableIds);
+        // Reset de afbeeldingen van onleesbare producten zodat gebruiker opnieuw kan fotograferen
+        setProducts((prev) =>
+          prev.map((p) =>
+            unreadableIds.includes(p.id)
+              ? { ...p, images: [], previewUrls: [] }
+              : p,
+          ),
+        );
+        setScreen('capture');
+      } else {
+        setPhotoUnreadableIds([]);
+        setResult(data);
+        setScreen('result');
+      }
     } catch (err) {
       console.error(err);
       setError(err.message);
       setScreen('error');
+    }
+  }
+
+  /**
+   * Callback van BarcodeScanStep.
+   * barcodeResults: { [productId]: barcodeData | null }
+   * anyNeedsPhoto:  true als minstens één product een foto-fallback vereist
+   */
+  function handleBarcodeNext(barcodeResults, anyNeedsPhoto, uploadedImages = {}) {
+    const updatedProducts = products.map((p) => {
+      const imgs = uploadedImages[p.id] ?? [];
+      return {
+        ...p,
+        barcodeData: barcodeResults[p.id] ?? null,
+        images: imgs.length ? imgs : p.images,
+        previewUrls: imgs.length ? imgs : p.previewUrls,
+      };
+    });
+    setProducts(updatedProducts);
+
+    if (anyNeedsPhoto) {
+      // Ga naar de foto-stap voor producten zonder barcode-data
+      setScreen('capture');
+    } else {
+      // Alle producten hebben barcode-data — direct naar analyse
+      runAnalysis(updatedProducts);
     }
   }
 
@@ -67,13 +119,15 @@ export default function App() {
   }
 
   function handleReset() {
-    setScreen('capture');
+    setScreen('barcode');
     setProducts(EMPTY_PRODUCTS());
     setResult(null);
     setError(null);
+    setPhotoUnreadableIds([]);
   }
 
-  const stepForScreen = { capture: 1, analyzing: 2, result: 3, error: 1 };
+  // Stap 1 = barcode, stap 2 = foto/producten, stap 3 = analyse, stap 4 = resultaat
+  const stepForScreen = { barcode: 1, capture: 2, analyzing: 3, result: 4, error: 1 };
 
   return (
     <div className="min-h-screen bg-gray-50 font-inter">
@@ -84,6 +138,13 @@ export default function App() {
           <StepIndicator currentStep={stepForScreen[screen] ?? 1} />
         )}
 
+        {screen === 'barcode' && (
+          <BarcodeScanStep
+            products={products}
+            onNext={handleBarcodeNext}
+          />
+        )}
+
         {screen === 'capture' && (
           <ProductList
             products={products}
@@ -92,6 +153,7 @@ export default function App() {
             onUseDemoProducts={handleUseDemoProducts}
             canAnalyze={canAnalyze}
             demoMode={demoMode}
+            photoUnreadableIds={photoUnreadableIds}
           />
         )}
 
